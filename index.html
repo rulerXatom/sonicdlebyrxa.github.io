@@ -327,7 +327,8 @@
 
 
   /* ----- settings (Tails' wrench) ----- */
-  .settings { position: fixed; top: 12px; right: 12px; z-index: 50; }
+  .topbar { position: fixed; top: 12px; right: 12px; z-index: 50; display: flex; gap: 10px; align-items: flex-start; }
+  .settings, .account { position: relative; }
   .gear {
     --btn-bg: var(--paper);
     width: 54px; height: 54px; padding: 0; border-radius: 50%;
@@ -367,6 +368,48 @@
   }
   .reset:hover { background: rgba(255, 255, 255, .14); }
 
+
+  /* ----- account (ring button, menu, dialog) ----- */
+  .ring:hover svg, .ring[aria-expanded="true"] svg { transform: rotate(14deg) scale(1.08); }
+  .acc-box { padding: 10px 0 4px; border-top: 2px solid rgba(255, 255, 255, .14); }
+  .acc-title { font-weight: 800; }
+  .acc-text { margin: 2px 0 8px; font-size: .88rem; opacity: .9; }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mini { padding: 6px 12px; font-size: .88rem; }
+  .primary { background: var(--ring); color: var(--night); }
+  .primary:hover { background: #ffd65c; }
+  .acc-mail { margin: 0 0 6px; font-size: .88rem; opacity: .85; overflow-wrap: anywhere; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  .stat { background: rgba(255, 255, 255, .1); border-radius: 12px; padding: 8px 4px; text-align: center; }
+  .stat b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.5rem; line-height: 1.1; color: var(--ring); }
+  .stat span { font-size: .78rem; }
+  .acc-status { margin: 0 0 8px; min-height: 1.3em; font-size: .85rem; opacity: .9; }
+
+  dialog {
+    width: min(420px, calc(100vw - 24px)); padding: 24px 22px 20px;
+    background: var(--night); color: var(--paper);
+    border: 4px solid var(--ring); border-radius: 22px;
+    box-shadow: 0 10px 0 rgba(8, 19, 63, .45);
+  }
+  dialog::backdrop { background: rgba(4, 10, 40, .72); }
+  dialog h2 { margin: 0 0 14px; font-family: var(--display); font-weight: 400; font-size: 1.8rem; color: var(--ring); }
+  .dlg-close {
+    position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; padding: 0;
+    border-radius: 50%; font-size: 1rem; line-height: 1;
+  }
+  .field { display: block; margin: 0 0 12px; font-weight: 800; }
+  .field input {
+    width: 100%; margin-top: 4px; font: inherit; font-weight: 700;
+    color: var(--night); background: var(--paper);
+    border: 3px solid var(--ring); border-radius: 12px; padding: 10px 14px;
+  }
+  #authMsg { min-height: 1.5em; margin: 4px 0 10px; font-weight: 700; }
+  #authMsg.err { color: #ff9d92; }
+  #authMsg.ok { color: #8df0a0; }
+  .auth-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .linkbtn { background: transparent; border: 0; color: var(--paper); text-decoration: underline; padding: 6px 4px; }
+  .linkbtn:hover { background: transparent; color: var(--ring); }
+
   /* ----- dark theme ----- */
   html[data-theme="dark"] {
     color-scheme: dark;
@@ -400,10 +443,11 @@
   html[data-motion="off"] .sil-stage img,
   html[data-motion="off"] .card,
   html[data-motion="off"] .gear svg,
+  html[data-motion="off"] .ring svg,
   html[data-motion="off"] .switch .knob { transition: none; }
 
   @media (max-width: 520px) {
-    .settings { top: 8px; right: 8px; }
+    .topbar { top: 8px; right: 8px; gap: 8px; }
     .gear { width: 46px; height: 46px; }
     .gear svg { width: 30px; height: 30px; }
     .tab { font-size: .9rem; padding: 10px 4px 12px; }
@@ -420,7 +464,30 @@
 </head>
 <body>
 <div class="checker" aria-hidden="true"></div>
-<div class="settings" id="settings">
+<div class="topbar" id="topbar">
+  <div class="account" id="accountWrap" hidden>
+    <button class="gear ring" id="accountBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="accountMenu" aria-label="My account">
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <g transform="rotate(-25 16 16)" fill="none" stroke-linecap="round">
+          <ellipse cx="16" cy="16" rx="8.2" ry="10.6" stroke="#000" stroke-width="9"/>
+          <ellipse cx="16" cy="16" rx="8.2" ry="10.6" stroke="#ffc52e" stroke-width="5"/>
+          <path d="M8.3 12.4A8.2 10.6 0 0 1 13.2 6" stroke="#fff3a6" stroke-width="1.8"/>
+        </g>
+      </svg>
+    </button>
+    <div class="pop" id="accountMenu" role="group" aria-label="My account" hidden>
+      <h2 id="accName"></h2>
+      <p class="acc-mail" id="accEmail"></p>
+      <div class="stats">
+        <div class="stat"><b id="stPlayed">0</b><span>Played</span></div>
+        <div class="stat"><b id="stWins">0</b><span>Wins</span></div>
+        <div class="stat"><b id="stStreak">0</b><span>Day streak</span></div>
+      </div>
+      <p class="acc-status" id="accStatus" aria-live="polite"></p>
+      <button class="reset" id="logoutBtn" type="button">Log out</button>
+    </div>
+  </div>
+  <div class="settings" id="settings">
   <button class="gear" id="settingsBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="settingsMenu" aria-label="Settings">
     <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
       <g transform="translate(16 16) rotate(45) scale(.85) translate(-16 -15.75)" stroke-linejoin="round" stroke-linecap="round">
@@ -440,8 +507,20 @@
       <span id="lblMotion">Animations</span>
       <button class="switch" id="optMotion" type="button" role="switch" aria-checked="true" aria-labelledby="lblMotion"><span class="knob"></span></button>
     </div>
+    <div class="acc-box" id="accOut">
+      <div class="acc-title">Account</div>
+      <p class="acc-text">Save your progress and keep it on every device.</p>
+      <div class="btnrow">
+        <button class="mini primary" id="btnSignup" type="button">Create account</button>
+        <button class="mini" id="btnLogin" type="button">Log in</button>
+      </div>
+    </div>
+    <div class="acc-box" id="accIn" hidden>
+      <div class="acc-title">Signed in as <b id="accInName"></b></div>
+    </div>
     <button class="reset" id="resetBtn" type="button">Reset saved progress</button>
   </div>
+</div>
 </div>
 
 <div class="wrap">
@@ -645,9 +724,42 @@
   </footer>
 </div>
 
+<dialog id="authDialog" aria-labelledby="authTitle">
+  <button class="dlg-close" id="authClose" type="button" aria-label="Close">✕</button>
+  <h2 id="authTitle">Log in</h2>
+  <p id="authOff" hidden>Accounts are not available on this site yet. Your progress is still saved in this browser.</p>
+  <form id="authForm">
+    <label class="field" id="nameField" hidden>Display name
+      <input id="authName" type="text" maxlength="20" autocomplete="nickname">
+    </label>
+    <label class="field">Email
+      <input id="authEmail" type="email" required autocomplete="email">
+    </label>
+    <label class="field">Password
+      <input id="authPass" type="password" required minlength="6" autocomplete="current-password">
+    </label>
+    <p id="authMsg" role="alert"></p>
+    <div class="auth-actions">
+      <button class="primary" id="authSubmit" type="submit">Log in</button>
+      <button class="linkbtn" id="authSwitch" type="button">Create a new account</button>
+    </div>
+  </form>
+</dialog>
+
+
 <script>
 (function () {
   "use strict";
+
+  /* ============================================================
+     ACCOUNTS (optional) – see ACCOUNTS_SETUP.md
+     Paste the Project URL and the public "anon" key of your free
+     Supabase project here. NEVER paste the "service_role" key.
+     Leave both empty to switch accounts off.
+     ============================================================ */
+  var SUPABASE_URL = "https://psrnblgyiomghnjdbnhr.supabase.co/rest/v1/";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcm5ibGd5aW9tZ2huamRibmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4NjY0NDEsImV4cCI6MjEwOTQ0MjQ0MX0.hIgrhEkfhUok82NovgZgPcUpLBnnbYihdkYa1w5ejpE";
+  var CLOUD = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
   /* ============================================================
      CHARACTER DATABASE – add new ones here.
@@ -846,6 +958,8 @@
   function save() {
     if (state.mode !== "daily") return;
     store.set(KEYS[game], { date: todayKey(), guesses: state.guesses, over: state.over, won: state.won });
+    if (state.over) recordResult();
+    scheduleSync();
   }
 
   function syncModeButtons() {
@@ -1432,12 +1546,13 @@
     $("settingsMenu").hidden = !open;
     $("settingsBtn").setAttribute("aria-expanded", String(open));
   }
-  $("settingsBtn").addEventListener("click", function () { setMenu($("settingsMenu").hidden); });
+  $("settingsBtn").addEventListener("click", function () { setAcc(false); setMenu($("settingsMenu").hidden); });
   document.addEventListener("click", function (e) {
-    if (!$("settings").contains(e.target)) setMenu(false);
+    if (!$("topbar").contains(e.target)) { setMenu(false); setAcc(false); }
   });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && !$("settingsMenu").hidden) { setMenu(false); $("settingsBtn").focus(); }
+    else if (e.key === "Escape" && !$("accountMenu").hidden) { setAcc(false); $("accountBtn").focus(); }
   });
   $("optDark").addEventListener("click", function () {
     settings.dark = !settings.dark; store.set(SETTINGS_KEY, settings); applySettings();
@@ -1448,10 +1563,282 @@
   $("resetBtn").addEventListener("click", function () {
     if (window.confirm("Reset today's saved progress in all games?")) {
       Object.keys(KEYS).forEach(function (k) { try { localStorage.removeItem(KEYS[k]); } catch (e) {} });
-      location.reload();
+      if (session) pushRemote().then(function () { location.reload(); }, function () { location.reload(); });
+      else location.reload();
     }
   });
   applySettings();
+
+  /* ---------- statistics (kept in this browser, synced to the account) ---------- */
+  var STATS_KEY = "sonicdle:stats";
+  function loadStats() {
+    var st = store.get(STATS_KEY) || {};
+    return {
+      done: Array.isArray(st.done) ? st.done.filter(function (x) { return typeof x === "string"; }) : [],
+      won: Array.isArray(st.won) ? st.won.filter(function (x) { return typeof x === "string"; }) : []
+    };
+  }
+  function unionKeys(a, b) {
+    var seen = {}, out = [];
+    a.concat(b).forEach(function (k) { if (!seen[k]) { seen[k] = 1; out.push(k); } });
+    out.sort(function (x, y) { return x.split(":")[1] < y.split(":")[1] ? -1 : x.split(":")[1] > y.split(":")[1] ? 1 : 0; });
+    return out.slice(-400);
+  }
+  function recordResult() {
+    var st = loadStats();
+    var key = game + ":" + todayKey();
+    st.done = unionKeys(st.done, [key]);
+    if (state.won) st.won = unionKeys(st.won, [key]);
+    store.set(STATS_KEY, st);
+  }
+  function dateKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function streakOf(wonKeys) {
+    var days = {};
+    wonKeys.forEach(function (k) { days[k.split(":")[1]] = 1; });
+    var d = new Date(), n = 0;
+    if (!days[dateKey(d)]) d.setDate(d.getDate() - 1);   // today may not be won yet
+    while (days[dateKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+
+  /* ---------- accounts (Supabase over plain fetch, no extra libraries) ---------- */
+  var SESSION_KEY = "sonicdle:session";
+  var session = CLOUD ? store.get(SESSION_KEY) : null;
+  if (session && !(session.access_token && session.refresh_token && session.user)) session = null;
+
+  function errText(j, status) {
+    var m = j && (j.msg || j.error_description || j.message || j.error);
+    return m ? String(m) : "Request failed (" + status + ")";
+  }
+  function api(path, o) {
+    o = o || {};
+    var h = { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json", Authorization: "Bearer " + (o.token || SUPABASE_ANON_KEY) };
+    if (o.headers) Object.keys(o.headers).forEach(function (k) { h[k] = o.headers[k]; });
+    return fetch(SUPABASE_URL + path, {
+      method: o.method || "GET", headers: h, body: o.body ? JSON.stringify(o.body) : undefined
+    }).catch(function () {
+      throw new Error("Network error. Check your connection and try again.");
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var j = null;
+        try { j = t ? JSON.parse(t) : null; } catch (e) {}
+        if (!r.ok) throw new Error(errText(j, r.status));
+        return j;
+      });
+    });
+  }
+  function setSession(j) {
+    var u = j.user || (session && session.user) || {};
+    var meta = u.user_metadata || {};
+    session = {
+      access_token: j.access_token,
+      refresh_token: j.refresh_token,
+      expires_at: j.expires_at || (Math.floor(Date.now() / 1000) + (j.expires_in || 3600)),
+      user: { id: u.id, email: u.email || "", name: meta.name || String(u.email || "Player").split("@")[0] }
+    };
+    store.set(SESSION_KEY, session);
+  }
+  function clearSession() {
+    session = null;
+    try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    updateAccountUI();
+  }
+  function ensureToken() {
+    if (!session) return Promise.reject(new Error("Not signed in."));
+    if (session.expires_at - 60 > Date.now() / 1000) return Promise.resolve(session.access_token);
+    return api("/auth/v1/token?grant_type=refresh_token", { method: "POST", body: { refresh_token: session.refresh_token } })
+      .then(function (j) { setSession(j); return session.access_token; })
+      .catch(function (err) {
+        if (!/network/i.test(err.message)) clearSession();   // the login is no longer valid
+        throw err;
+      });
+  }
+
+  function validProgress(o) {
+    return o && typeof o === "object" && typeof o.date === "string" && Array.isArray(o.guesses);
+  }
+  function score(o) { return (o.over ? 1000 : 0) + o.guesses.length; }
+  function localPayload() {
+    var progress = {};
+    Object.keys(KEYS).forEach(function (k) {
+      var v = store.get(KEYS[k]);
+      if (validProgress(v)) progress[k] = v;
+    });
+    return { progress: progress, stats: loadStats() };
+  }
+  function mergeRemote(remote) {
+    remote = remote || {};
+    var rp = remote.progress || {};
+    var today = todayKey();
+    Object.keys(KEYS).forEach(function (k) {
+      var l = store.get(KEYS[k]), r = rp[k];
+      var lOk = validProgress(l) && l.date === today;
+      var rOk = validProgress(r) && r.date === today;
+      var pick = null;
+      if (lOk && rOk) pick = score(r) > score(l) ? r : l;
+      else if (rOk) pick = r;
+      else if (lOk) pick = l;
+      if (pick) store.set(KEYS[k], pick);
+    });
+    var rs = remote.stats || {};
+    var ls = loadStats();
+    store.set(STATS_KEY, {
+      done: unionKeys(ls.done, Array.isArray(rs.done) ? rs.done.filter(function (x) { return typeof x === "string"; }) : []),
+      won: unionKeys(ls.won, Array.isArray(rs.won) ? rs.won.filter(function (x) { return typeof x === "string"; }) : [])
+    });
+  }
+
+  function setStatus(t) { $("accStatus").textContent = t; }
+  function pushRemote() {
+    return ensureToken().then(function (tok) {
+      return api("/rest/v1/progress", {
+        method: "POST", token: tok,
+        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: { user_id: session.user.id, data: localPayload(), updated_at: new Date().toISOString() }
+      });
+    });
+  }
+  // pull, merge, push. Resolves to true when the local progress changed.
+  function syncNow() {
+    if (!session) return Promise.resolve(false);
+    setStatus("Syncing…");
+    return ensureToken().then(function (tok) {
+      return api("/rest/v1/progress?select=data&limit=1", { token: tok }).then(function (rows) {
+        var before = JSON.stringify(localPayload());
+        mergeRemote(rows && rows[0] ? rows[0].data : null);
+        var changed = before !== JSON.stringify(localPayload());
+        return pushRemote().then(function () {
+          setStatus("Saved to your account.");
+          updateAccountUI();
+          return changed;
+        });
+      });
+    }).catch(function (err) {
+      setStatus("Could not sync: " + err.message);
+      return false;
+    });
+  }
+  var syncTimer = null;
+  function scheduleSync() {
+    if (!session) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(function () { syncNow(); }, 1200);
+  }
+
+  /* ---------- account interface ---------- */
+  function setAcc(open) {
+    $("accountMenu").hidden = !open;
+    $("accountBtn").setAttribute("aria-expanded", String(open));
+  }
+  function updateAccountUI() {
+    var on = !!session;
+    $("accountWrap").hidden = !on;
+    $("accOut").hidden = on;
+    $("accIn").hidden = !on;
+    if (!on) { setAcc(false); return; }
+    $("accName").textContent = session.user.name;
+    $("accInName").textContent = session.user.name;
+    $("accEmail").textContent = session.user.email;
+    var st = loadStats();
+    $("stPlayed").textContent = st.done.length;
+    $("stWins").textContent = st.won.length;
+    $("stStreak").textContent = streakOf(st.won);
+  }
+  $("accountBtn").addEventListener("click", function () {
+    setMenu(false);
+    updateAccountUI();
+    setAcc($("accountMenu").hidden);
+  });
+  $("logoutBtn").addEventListener("click", function () {
+    var tok = session && session.access_token;
+    if (tok) api("/auth/v1/logout", { method: "POST", token: tok }).catch(function () {});
+    clearSession();
+  });
+
+  var authMode = "login";
+  function setMsg(text, kind) {
+    var m = $("authMsg");
+    m.textContent = text;
+    m.className = kind || "";
+  }
+  function setMode(mode) {
+    authMode = mode;
+    var signup = mode === "signup";
+    $("authTitle").textContent = signup ? "Create account" : "Log in";
+    $("nameField").hidden = !signup;
+    $("authName").required = signup;
+    $("authSubmit").textContent = signup ? "Create account" : "Log in";
+    $("authSwitch").textContent = signup ? "I already have an account" : "Create a new account";
+    $("authPass").autocomplete = signup ? "new-password" : "current-password";
+    setMsg("", "");
+  }
+  function openAuth(mode) {
+    setMode(mode);
+    $("authForm").hidden = !CLOUD;
+    $("authOff").hidden = CLOUD;
+    setMenu(false);
+    var d = $("authDialog");
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+    if (CLOUD) (mode === "signup" ? $("authName") : $("authEmail")).focus();
+  }
+  function closeAuth() {
+    var d = $("authDialog");
+    if (d.close) d.close(); else d.removeAttribute("open");
+  }
+  $("btnSignup").addEventListener("click", function () { openAuth("signup"); });
+  $("btnLogin").addEventListener("click", function () { openAuth("login"); });
+  $("authClose").addEventListener("click", closeAuth);
+  $("authDialog").addEventListener("click", function (e) { if (e.target === $("authDialog")) closeAuth(); });
+  $("authSwitch").addEventListener("click", function () { setMode(authMode === "signup" ? "login" : "signup"); });
+
+  $("authForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var signup = authMode === "signup";
+    var name = $("authName").value.trim();
+    var email = $("authEmail").value.trim();
+    var pass = $("authPass").value;
+    if (signup && (name.length < 2 || name.length > 20)) { setMsg("Pick a display name between 2 and 20 characters.", "err"); return; }
+    if (pass.length < 6) { setMsg("Use a password with at least 6 characters.", "err"); return; }
+
+    var btn = $("authSubmit");
+    btn.disabled = true;
+    setMsg("Please wait…", "");
+
+    var job;
+    if (signup) {
+      job = api("/auth/v1/signup", { method: "POST", body: { email: email, password: pass, data: { name: name } } })
+        .then(function (j) {
+          if (j && j.access_token) {
+            setSession(j);
+            closeAuth();
+            updateAccountUI();
+            return syncNow();   // this browser's progress now belongs to the new account
+          }
+          setMode("login");
+          setMsg("Account created! Check your email, click the confirmation link, then log in.", "ok");
+        });
+    } else {
+      job = api("/auth/v1/token?grant_type=password", { method: "POST", body: { email: email, password: pass } })
+        .then(function (j) {
+          setSession(j);
+          return syncNow();
+        })
+        .then(function (changed) {
+          closeAuth();
+          updateAccountUI();
+          if (changed) location.reload();   // progress from another device was loaded
+        });
+    }
+    job.catch(function (err) { setMsg(err.message, "err"); })
+       .then(function () { btn.disabled = false; $("authPass").value = ""; });
+  });
+
+  updateAccountUI();
+  if (session) {
+    syncNow().then(function (changed) { if (changed) location.reload(); });
+  }
 
   /* ---------- home menu and routing ---------- */
   function statusFor(key) {
