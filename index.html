@@ -915,24 +915,27 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 
+<script src="config.js"></script>
 <script>
 (function () {
   "use strict";
 
   /* ============================================================
-     CONTACT – fill in your own details (left empty on purpose)
+     CONTACT – fill in your own details in config.js
      ============================================================ */
-  var CONTACT_EMAIL = "sonicdlebyrxa@gmail.com";   // e.g. "yourname@gmail.com"
-  var CONTACT_NAME = "rulerXatom";    // optional, e.g. the name you want players to see
+  // The values come from config.js, so updating index.html never erases them.
+  var CONFIG = window.SONICDLE_CONFIG || {};
+  var CONTACT_EMAIL = String(CONFIG.contactEmail || "");
+  var CONTACT_NAME = String(CONFIG.contactName || "");
 
   /* ============================================================
      ACCOUNTS (optional) – see ACCOUNTS_SETUP.md
-     Paste the Project URL and the public "anon" key of your free
-     Supabase project here. NEVER paste the "service_role" key.
-     Leave both empty to switch accounts off.
+     The Project URL and the public "anon" key of your free Supabase
+     project go into config.js. NEVER paste the "service_role" key.
+     Leave them empty to switch accounts off.
      ============================================================ */
-  var SUPABASE_URL = "";
-  var SUPABASE_ANON_KEY = "";
+  var SUPABASE_URL = String(CONFIG.supabaseUrl || "https://psrnblgyiomghnjdbnhr.supabase.co");
+  var SUPABASE_ANON_KEY = String(CONFIG.supabaseAnonKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcm5ibGd5aW9tZ2huamRibmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4NjY0NDEsImV4cCI6MjEwOTQ0MjQ0MX0.hIgrhEkfhUok82NovgZgPcUpLBnnbYihdkYa1w5ejpE");
   // forgive common copy/paste slips: spaces, a missing https://, a trailing "/" or a path like /rest/v1
   (function () {
     var u = SUPABASE_URL.trim();
