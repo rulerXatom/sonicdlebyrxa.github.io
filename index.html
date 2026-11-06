@@ -82,7 +82,14 @@
     margin: 0 auto;
     overflow: visible;
     filter: drop-shadow(0 7px 0 rgba(8, 19, 63, .45));
+    transform-origin: 50% 55%;
+    transition: transform .25s ease;
   }
+  @media (hover: hover) {
+    .logo:hover { transform: scale(.95); }
+  }
+  .logo-link:focus-visible .logo { transform: scale(.95); }
+  .logo-link:active .logo { transform: scale(.92); }
   .sr-only {
     position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
     overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
@@ -410,6 +417,84 @@
   .linkbtn { background: transparent; border: 0; color: var(--paper); text-decoration: underline; padding: 6px 4px; }
   .linkbtn:hover { background: transparent; color: var(--ring); }
 
+
+  /* ----- Chaos Emerald streak ----- */
+  .emerald { --gem: #8590a6; position: relative; }
+  .gem:hover svg, .gem[aria-expanded="true"] svg { transform: scale(1.12) rotate(-6deg); }
+  .gem.on svg { filter: drop-shadow(0 0 3px var(--gem)); }
+  .tip {
+    display: none; position: absolute; top: calc(100% + 12px); right: 0; z-index: 2;
+    width: min(250px, calc(100vw - 24px)); padding: 12px 14px;
+    background: var(--night); color: var(--paper);
+    border: 4px solid var(--ring); border-radius: 16px;
+    box-shadow: 0 8px 0 rgba(8, 19, 63, .4);
+  }
+  .emerald:hover .tip, .emerald.open .tip { display: block; }
+  .tip .big { display: block; font-family: var(--display); font-weight: 400; font-size: 1.35rem; line-height: 1.2; color: var(--ring); }
+  .tip p { margin: 4px 0 0; font-size: .9rem; }
+  .tip .chip-gem { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; background: var(--gem); border: 2px solid #000; vertical-align: -1px; }
+
+
+  /* ----- contact (question mark) ----- */
+  .help-btn:hover svg, .help-btn:focus-visible svg { transform: rotate(-10deg) scale(1.1); }
+  .btn {
+    display: inline-block; padding: 8px 18px; border: 3px solid var(--night); border-radius: 999px;
+    background: var(--paper); color: var(--night); font-weight: 800; text-decoration: none;
+  }
+  .btn.primary { background: var(--ring); }
+  .btn:hover { background: #fff; }
+  .btn.primary:hover { background: #ffd65c; }
+  .btn:focus-visible { outline: 4px solid var(--ring); outline-offset: 2px; }
+  .contact-who { margin: 0 0 4px; font-weight: 800; }
+  .contact-mail {
+    margin: 10px 0 14px; padding: 10px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, .1); color: var(--ring);
+    font-weight: 800; overflow-wrap: anywhere; user-select: all;
+  }
+  #contactMsg { min-height: 1.4em; margin: 10px 0 0; font-weight: 700; color: #8df0a0; }
+
+
+  /* ----- achievements ----- */
+  .trophy-btn:hover svg, .trophy-btn:focus-visible svg { transform: rotate(8deg) scale(1.1); }
+  #trophyDialog { width: min(640px, calc(100vw - 24px)); }
+  .ach-sum { margin: 0 0 6px; font-weight: 800; }
+  .ach-bar, .mini-bar { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, .16); overflow: hidden; }
+  .ach-bar span, .mini-bar span { display: block; height: 100%; background: var(--ring); border-radius: 999px; }
+  .ach-wrap { max-height: min(56vh, 430px); overflow: auto; margin-top: 14px; border-radius: 12px; background: rgba(255, 255, 255, .05); }
+  .ach-table { width: 100%; border-collapse: collapse; }
+  .ach-table th, .ach-table td { padding: 10px 12px; text-align: left; vertical-align: middle; border-bottom: 2px solid rgba(255, 255, 255, .1); }
+  .ach-table thead th {
+    position: sticky; top: 0; z-index: 1; background: var(--night);
+    font-family: var(--display); font-weight: 400; color: var(--ring);
+  }
+  .ach-table tbody th { font-weight: 400; }
+  .ach-cell { display: flex; align-items: center; gap: 12px; }
+  .ach-badge {
+    flex: none; width: 36px; height: 36px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 1.1rem;
+    background: #3a4888; color: var(--paper);
+  }
+  .ach-row.done .ach-badge { background: var(--ring); color: #000; border: 3px solid #000; }
+  .ach-row.done th, .ach-row.done td { background: rgba(255, 197, 46, .12); }
+  .ach-row.locked .ach-text { opacity: .78; }
+  .ach-text b { display: block; font-weight: 800; }
+  .ach-text span { display: block; font-size: .86rem; opacity: .9; }
+  .ach-prog { width: 130px; font-weight: 800; font-size: .92rem; white-space: nowrap; }
+  .ach-prog .mini-bar { margin-top: 4px; }
+  .ach-row.done .ach-prog { color: var(--ring); }
+
+  .toast {
+    position: fixed; top: clamp(72px, 11vw, 112px); left: 50%; transform: translateX(-50%);
+    z-index: 60; max-width: calc(100vw - 24px); padding: 12px 22px; text-align: center;
+    background: var(--night); color: var(--paper);
+    border: 4px solid var(--ring); border-radius: 16px;
+    box-shadow: 0 8px 0 rgba(8, 19, 63, .4);
+    animation: toast-in .35s ease;
+  }
+  .toast b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.15rem; color: var(--ring); }
+  @keyframes toast-in { from { opacity: 0; transform: translate(-50%, -14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @media (max-width: 520px) { .ach-prog { width: 92px; } }
+
   /* ----- dark theme ----- */
   html[data-theme="dark"] {
     color-scheme: dark;
@@ -437,6 +522,7 @@
   html[data-theme="dark"] .quote-card { background: #e4eaff; }
 
   /* ----- animations switched off from the settings menu ----- */
+  html[data-motion="off"] .toast,
   html[data-motion="off"] body::before,
   html[data-motion="off"] .flip { animation: none; }
   html[data-motion="off"] .zoom-stage img,
@@ -444,6 +530,9 @@
   html[data-motion="off"] .card,
   html[data-motion="off"] .gear svg,
   html[data-motion="off"] .ring svg,
+  html[data-motion="off"] .gem svg,
+  html[data-motion="off"] .logo,
+  html[data-motion="off"] .trophy-btn svg,
   html[data-motion="off"] .switch .knob { transition: none; }
 
   @media (max-width: 520px) {
@@ -459,6 +548,8 @@
     .sil-stage img { transition: none; }
     .card { transition: none; }
     body::before { animation: none; }
+    .logo { transition: none; }
+    .toast { animation: none; }
   }
 </style>
 </head>
@@ -486,6 +577,41 @@
       <p class="acc-status" id="accStatus" aria-live="polite"></p>
       <button class="reset" id="logoutBtn" type="button">Log out</button>
     </div>
+  </div>
+  <div class="emerald" id="emerald">
+    <button class="gear gem" id="emBtn" type="button" aria-expanded="false" aria-describedby="emTip" aria-label="Streak: 0 days">
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <g stroke-linejoin="round" stroke-linecap="round">
+          <polygon points="16,3 27,10 27,22 16,29 5,22 5,10" style="fill: var(--gem)" stroke="#000" stroke-width="2.8"/>
+          <polygon points="16,3 27,10 16,15 5,10" fill="#fff" opacity=".4"/>
+          <polygon points="5,10 16,15 16,29 5,22" fill="#000" opacity=".18"/>
+          <polygon points="27,10 27,22 16,29 16,15" fill="#000" opacity=".06"/>
+          <path d="M9.5 9.5L14 7" stroke="#fff" stroke-width="1.6" fill="none" opacity=".9"/>
+        </g>
+      </svg>
+    </button>
+    <div class="tip" id="emTip" role="tooltip">
+      <b class="big" id="emStreak">Streak: 0 days</b>
+      <p id="emName"></p>
+      <p id="emNext"></p>
+      <p id="emToday"></p>
+    </div>
+  </div>
+  <div class="trophy">
+    <button class="gear trophy-btn" id="trophyBtn" type="button" aria-haspopup="dialog" aria-label="Achievements">
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <path d="M9.5 7.5H6C6 12.6 7.6 14.9 10.6 15.6" stroke="#000" stroke-width="5.6"/>
+          <path d="M22.5 7.5H26C26 12.6 24.4 14.9 21.4 15.6" stroke="#000" stroke-width="5.6"/>
+          <path d="M9.5 7.5H6C6 12.6 7.6 14.9 10.6 15.6" stroke="#ffc52e" stroke-width="2.4"/>
+          <path d="M22.5 7.5H26C26 12.6 24.4 14.9 21.4 15.6" stroke="#ffc52e" stroke-width="2.4"/>
+          <path d="M9 4.8H23V13C23 17.4 19.9 20 16 20C12.1 20 9 17.4 9 13Z" fill="#ffc52e" stroke="#000" stroke-width="2.6"/>
+          <rect x="13.8" y="20" width="4.4" height="4.4" fill="#ffc52e" stroke="#000" stroke-width="2.4"/>
+          <path d="M9.8 24.6H22.2V28.2H9.8Z" fill="#ffc52e" stroke="#000" stroke-width="2.4"/>
+          <path d="M12.4 8.6V13" stroke="#fff3a6" stroke-width="1.8"/>
+        </g>
+      </svg>
+    </button>
   </div>
   <div class="settings" id="settings">
   <button class="gear" id="settingsBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="settingsMenu" aria-label="Settings">
@@ -521,6 +647,19 @@
     <button class="reset" id="resetBtn" type="button">Reset saved progress</button>
   </div>
 </div>
+  <div class="help">
+    <button class="gear help-btn" id="helpBtn" type="button" aria-haspopup="dialog" aria-label="Contact">
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.8 11.4C9.8 4.6 22.2 4.6 22.2 11.6C22.2 16.2 16 16 16 19.8" stroke="#000" stroke-width="8.6"/>
+          <path d="M9.8 11.4C9.8 4.6 22.2 4.6 22.2 11.6C22.2 16.2 16 16 16 19.8" stroke="#2f6bff" stroke-width="4.4"/>
+          <path d="M12.2 8.2C13.8 6.9 16.2 6.6 18.2 7.4" stroke="#b5d0ff" stroke-width="1.5"/>
+          <circle cx="16" cy="26.8" r="4.2" fill="#000" stroke="none"/>
+          <circle cx="16" cy="26.8" r="2.4" fill="#2f6bff" stroke="none"/>
+        </g>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <div class="wrap">
@@ -746,10 +885,45 @@
   </form>
 </dialog>
 
+<dialog id="contactDialog" aria-labelledby="contactTitle">
+  <button class="dlg-close" id="contactClose" type="button" aria-label="Close">✕</button>
+  <h2 id="contactTitle">Contact</h2>
+  <p id="contactIntro">Found a bug, have an idea, or want to suggest a quote? Write to me!</p>
+  <p class="contact-who" id="contactWho" hidden></p>
+  <p class="contact-mail" id="contactMail" hidden></p>
+  <p id="contactOff" hidden>Contact details have not been added yet.</p>
+  <div class="auth-actions" id="contactActions" hidden>
+    <a class="btn primary" id="contactGmail" target="_blank" rel="noopener noreferrer">Open in Gmail</a>
+    <button type="button" id="contactCopy">Copy address</button>
+  </div>
+  <p id="contactMsg" role="status"></p>
+</dialog>
+
+<dialog id="trophyDialog" aria-labelledby="trophyTitle">
+  <button class="dlg-close" id="trophyClose" type="button" aria-label="Close">✕</button>
+  <h2 id="trophyTitle">Achievements</h2>
+  <p class="ach-sum" id="achSum"></p>
+  <div class="ach-bar" aria-hidden="true"><span id="achFill" style="width: 0%"></span></div>
+  <div class="ach-wrap">
+    <table class="ach-table">
+      <thead><tr><th scope="col">Achievement</th><th scope="col">Progress</th></tr></thead>
+      <tbody id="achBody"></tbody>
+    </table>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
 
 <script>
 (function () {
   "use strict";
+
+  /* ============================================================
+     CONTACT – fill in your own details (left empty on purpose)
+     ============================================================ */
+  var CONTACT_EMAIL = "";   // e.g. "yourname@gmail.com"
+  var CONTACT_NAME = "";    // optional, e.g. the name you want players to see
 
   /* ============================================================
      ACCOUNTS (optional) – see ACCOUNTS_SETUP.md
@@ -757,8 +931,8 @@
      Supabase project here. NEVER paste the "service_role" key.
      Leave both empty to switch accounts off.
      ============================================================ */
-  var SUPABASE_URL = "https://psrnblgyiomghnjdbnhr.supabase.co";
-  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcm5ibGd5aW9tZ2huamRibmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4NjY0NDEsImV4cCI6MjEwOTQ0MjQ0MX0.hIgrhEkfhUok82NovgZgPcUpLBnnbYihdkYa1w5ejpE";
+  var SUPABASE_URL = "";
+  var SUPABASE_ANON_KEY = "";
   // forgive common copy/paste slips: spaces, a missing https://, a trailing "/" or a path like /rest/v1
   (function () {
     var u = SUPABASE_URL.trim();
@@ -963,7 +1137,10 @@
   }
 
   function save() {
-    if (state.mode !== "daily") return;
+    if (state.mode !== "daily") {
+      if (state.over && state.won) recordRandomWin();
+      return;
+    }
     store.set(KEYS[game], { date: todayKey(), guesses: state.guesses, over: state.over, won: state.won });
     if (state.over) recordResult();
     scheduleSync();
@@ -1553,13 +1730,14 @@
     $("settingsMenu").hidden = !open;
     $("settingsBtn").setAttribute("aria-expanded", String(open));
   }
-  $("settingsBtn").addEventListener("click", function () { setAcc(false); setMenu($("settingsMenu").hidden); });
+  $("settingsBtn").addEventListener("click", function () { setAcc(false); setTip(false); setMenu($("settingsMenu").hidden); });
   document.addEventListener("click", function (e) {
-    if (!$("topbar").contains(e.target)) { setMenu(false); setAcc(false); }
+    if (!$("topbar").contains(e.target)) { setMenu(false); setAcc(false); setTip(false); }
   });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && !$("settingsMenu").hidden) { setMenu(false); $("settingsBtn").focus(); }
     else if (e.key === "Escape" && !$("accountMenu").hidden) { setAcc(false); $("accountBtn").focus(); }
+    else if (e.key === "Escape" && $("emerald").classList.contains("open")) { setTip(false); $("emBtn").focus(); }
   });
   $("optDark").addEventListener("click", function () {
     settings.dark = !settings.dark; store.set(SETTINGS_KEY, settings); applySettings();
@@ -1578,37 +1756,141 @@
 
   /* ---------- statistics (kept in this browser, synced to the account) ---------- */
   var STATS_KEY = "sonicdle:stats";
+  function strArr(a) {
+    return Array.isArray(a) ? a.filter(function (x) { return typeof x === "string"; }) : [];
+  }
+  function num(x) { return typeof x === "number" && isFinite(x) && x > 0 ? Math.floor(x) : 0; }
   function loadStats() {
     var st = store.get(STATS_KEY) || {};
     return {
-      done: Array.isArray(st.done) ? st.done.filter(function (x) { return typeof x === "string"; }) : [],
-      won: Array.isArray(st.won) ? st.won.filter(function (x) { return typeof x === "string"; }) : []
+      done: strArr(st.done), won: strArr(st.won),
+      one: strArr(st.one),       // won on the very first guess
+      few: strArr(st.few),       // won in 3 guesses or fewer
+      tough: strArr(st.tough),   // won after 10 or more guesses
+      best: num(st.best),        // longest streak ever
+      rand: num(st.rand),        // random-mode wins
+      acct: !!st.acct            // has created an account
     };
   }
   function unionKeys(a, b) {
     var seen = {}, out = [];
     a.concat(b).forEach(function (k) { if (!seen[k]) { seen[k] = 1; out.push(k); } });
     out.sort(function (x, y) { return x.split(":")[1] < y.split(":")[1] ? -1 : x.split(":")[1] > y.split(":")[1] ? 1 : 0; });
-    return out.slice(-400);
+    return out.slice(-1500);
   }
   function recordResult() {
+    var before = unlockedNames();
     var st = loadStats();
     var key = game + ":" + todayKey();
+    var n = state.guesses.length;
     st.done = unionKeys(st.done, [key]);
-    if (state.won) st.won = unionKeys(st.won, [key]);
+    if (state.won) {
+      st.won = unionKeys(st.won, [key]);
+      if (n === 1) st.one = unionKeys(st.one, [key]);
+      if (n <= 3) st.few = unionKeys(st.few, [key]);
+      if (n >= 10) st.tough = unionKeys(st.tough, [key]);
+    }
+    st.best = Math.max(st.best, streakOf(st.won));
     store.set(STATS_KEY, st);
+    updateEmerald();
+    announce(before);
+  }
+  function recordRandomWin() {
+    var before = unlockedNames();
+    var st = loadStats();
+    st.rand += 1;
+    store.set(STATS_KEY, st);
+    announce(before);
+  }
+  function markAccount() {
+    var st = loadStats();
+    if (st.acct) return;
+    var before = unlockedNames();
+    st.acct = true;
+    store.set(STATS_KEY, st);
+    announce(before);
   }
   function dateKey(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
+  // days on which every mode (classic, zoom, silhouette, quote) was won
+  function completeDays(wonKeys) {
+    var byDay = {}, days = {};
+    wonKeys.forEach(function (k) {
+      var a = k.split(":");
+      if (!byDay[a[1]]) byDay[a[1]] = {};
+      byDay[a[1]][a[0]] = 1;
+    });
+    Object.keys(byDay).forEach(function (d) {
+      if (Object.keys(KEYS).every(function (g) { return byDay[d][g]; })) days[d] = 1;
+    });
+    return days;
+  }
+  function wonToday(wonKeys) {
+    var t = todayKey();
+    return Object.keys(KEYS).filter(function (g) { return wonKeys.indexOf(g + ":" + t) !== -1; }).length;
+  }
   function streakOf(wonKeys) {
-    var days = {};
-    wonKeys.forEach(function (k) { days[k.split(":")[1]] = 1; });
+    var days = completeDays(wonKeys);
     var d = new Date(), n = 0;
-    if (!days[dateKey(d)]) d.setDate(d.getDate() - 1);   // today may not be won yet
+    if (!days[dateKey(d)]) d.setDate(d.getDate() - 1);   // today may not be finished yet
     while (days[dateKey(d)]) { n++; d.setDate(d.getDate() - 1); }
     return n;
   }
+
+  /* ---------- Chaos Emerald: changes every 35 days of streak ---------- */
+  var GEMS = [
+    { name: "Green",  color: "#2fd05f" },
+    { name: "Blue",   color: "#3d7bff" },
+    { name: "Red",    color: "#ff3b4f" },
+    { name: "Purple", color: "#b04cff" },
+    { name: "Yellow", color: "#ffd62e" },
+    { name: "Cyan",   color: "#27d8ff" },
+    { name: "White",  color: "#f4f7ff" }
+  ];
+  var GEM_DAYS = 35;
+  function setTip(open) {
+    $("emerald").classList.toggle("open", open);
+    $("emBtn").setAttribute("aria-expanded", String(open));
+  }
+  function updateEmerald() {
+    var wonKeys = loadStats().won;
+    var streak = streakOf(wonKeys);
+    var today = wonToday(wonKeys), total = Object.keys(KEYS).length;
+    var days = streak === 1 ? "1 day" : streak + " days";
+    $("emToday").textContent = today >= total
+      ? "Today: all " + total + " daily games won!"
+      : "Today: " + today + " of " + total + " daily games won.";
+    var box = $("emerald"), btn = $("emBtn");
+    $("emStreak").textContent = "Streak: " + days;
+    btn.setAttribute("aria-label", "Streak: " + days);
+    if (streak <= 0) {
+      box.style.setProperty("--gem", "#8590a6");
+      btn.classList.remove("on");
+      $("emName").textContent = "Inactive Chaos Emerald";
+      $("emNext").textContent = "Win all " + total + " daily games in one day to start a streak and light it up.";
+      return;
+    }
+    var idx = Math.min(GEMS.length - 1, Math.floor((streak - 1) / GEM_DAYS));
+    box.style.setProperty("--gem", GEMS[idx].color);
+    btn.classList.add("on");
+    var name = $("emName");
+    name.textContent = "";
+    var chip = document.createElement("span");
+    chip.className = "chip-gem";
+    name.appendChild(chip);
+    name.appendChild(document.createTextNode(GEMS[idx].name + " Chaos Emerald (" + (idx + 1) + " of 7)"));
+    if (idx < GEMS.length - 1) {
+      var left = (idx + 1) * GEM_DAYS + 1 - streak;
+      $("emNext").textContent = "Next emerald after " + left + (left === 1 ? " more day." : " more days.");
+    } else {
+      $("emNext").textContent = "You have reached the last emerald. Keep going!";
+    }
+  }
+  $("emBtn").addEventListener("click", function () {
+    setMenu(false); setAcc(false);
+    setTip(!$("emerald").classList.contains("open"));
+  });
 
   /* ---------- accounts (Supabase over plain fetch, no extra libraries) ---------- */
   var SESSION_KEY = "sonicdle:session";
@@ -1646,6 +1928,7 @@
       user: { id: u.id, email: u.email || "", name: meta.name || String(u.email || "Player").split("@")[0] }
     };
     store.set(SESSION_KEY, session);
+    markAccount();
   }
   function clearSession() {
     session = null;
@@ -1692,8 +1975,14 @@
     var rs = remote.stats || {};
     var ls = loadStats();
     store.set(STATS_KEY, {
-      done: unionKeys(ls.done, Array.isArray(rs.done) ? rs.done.filter(function (x) { return typeof x === "string"; }) : []),
-      won: unionKeys(ls.won, Array.isArray(rs.won) ? rs.won.filter(function (x) { return typeof x === "string"; }) : [])
+      done: unionKeys(ls.done, strArr(rs.done)),
+      won: unionKeys(ls.won, strArr(rs.won)),
+      one: unionKeys(ls.one, strArr(rs.one)),
+      few: unionKeys(ls.few, strArr(rs.few)),
+      tough: unionKeys(ls.tough, strArr(rs.tough)),
+      best: Math.max(ls.best, num(rs.best)),
+      rand: Math.max(ls.rand, num(rs.rand)),
+      acct: ls.acct || !!rs.acct
     });
   }
 
@@ -1740,6 +2029,7 @@
     $("accountBtn").setAttribute("aria-expanded", String(open));
   }
   function updateAccountUI() {
+    updateEmerald();
     var on = !!session;
     $("accountWrap").hidden = !on;
     $("accOut").hidden = on;
@@ -1755,6 +2045,7 @@
   }
   $("accountBtn").addEventListener("click", function () {
     setMenu(false);
+    setTip(false);
     updateAccountUI();
     setAcc($("accountMenu").hidden);
   });
@@ -1842,7 +2133,172 @@
        .then(function () { btn.disabled = false; $("authPass").value = ""; });
   });
 
+  /* ---------- achievements ---------- */
+  /* Edit the names and descriptions freely. "get" says what is counted, "goal" how much is needed. */
+  var ACHIEVEMENTS = [
+    { name: "Ring Collector",       desc: "Win your first daily game.",                        goal: 1,   get: function (c) { return c.wins; } },
+    { name: "Gotta Go Fast",        desc: "Win a daily game in 3 guesses or fewer.",           goal: 1,   get: function (c) { return c.few; } },
+    { name: "Faster Than Sound",    desc: "Win a daily game on your very first guess.",        goal: 1,   get: function (c) { return c.one; } },
+    { name: "Never Give Up",        desc: "Win a daily game that took 10 or more guesses.",    goal: 1,   get: function (c) { return c.tough; } },
+    { name: "Full Combo",           desc: "Win all four daily games in one day.",              goal: 1,   get: function (c) { return c.full; } },
+    { name: "Spin Dash",            desc: "Reach a 3-day streak.",                             goal: 3,   get: function (c) { return c.streak; } },
+    { name: "Chaos Control",        desc: "Reach a 7-day streak.",                             goal: 7,   get: function (c) { return c.streak; } },
+    { name: "Emerald Hunter",       desc: "Reach a 35-day streak and watch your emerald change color.", goal: 35, get: function (c) { return c.streak; } },
+    { name: "Super Sonic",          desc: "Reach the white Chaos Emerald (a 211-day streak).", goal: 211, get: function (c) { return c.streak; } },
+    { name: "Chaotix Detective",    desc: "Win 10 daily Classic games.",                       goal: 10,  get: function (c) { return c.game.classic; } },
+    { name: "Eagle Eye",            desc: "Win 10 daily Zoom games.",                          goal: 10,  get: function (c) { return c.game.zoom; } },
+    { name: "Shadow Hunter",        desc: "Win 10 daily Silhouette games.",                    goal: 10,  get: function (c) { return c.game.silhouette; } },
+    { name: "Voice Actor",          desc: "Win 10 daily Quote games.",                         goal: 10,  get: function (c) { return c.game.quote; } },
+    { name: "Free Run",             desc: "Win 10 rounds in Random character mode.",           goal: 10,  get: function (c) { return c.rand; } },
+    { name: "Hundred Rings",        desc: "Win 100 daily games.",                              goal: 100, get: function (c) { return c.wins; } },
+    { name: "Welcome to the Team",  desc: "Create an account.",                                goal: 1,   get: function (c) { return c.acct; } }
+  ];
+
+  function achContext() {
+    var st = loadStats();
+    var perGame = {};
+    Object.keys(KEYS).forEach(function (g) {
+      perGame[g] = st.won.filter(function (k) { return k.indexOf(g + ":") === 0; }).length;
+    });
+    return {
+      wins: st.won.length, one: st.one.length, few: st.few.length, tough: st.tough.length,
+      full: Object.keys(completeDays(st.won)).length,
+      streak: Math.max(st.best, streakOf(st.won)),
+      rand: st.rand, acct: st.acct ? 1 : 0, game: perGame
+    };
+  }
+  function unlockedNames() {
+    var c = achContext();
+    return ACHIEVEMENTS.filter(function (a) { return a.get(c) >= a.goal; }).map(function (a) { return a.name; });
+  }
+
+  var toastTimer = null;
+  function showToast(names) {
+    var t = $("toast");
+    t.textContent = "";
+    var b = document.createElement("b");
+    b.textContent = names.length > 1 ? "Achievements unlocked!" : "Achievement unlocked!";
+    t.appendChild(b);
+    names.forEach(function (n) {
+      var d = document.createElement("div");
+      d.textContent = n;
+      t.appendChild(d);
+    });
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 5000);
+  }
+  function announce(before) {
+    var fresh = unlockedNames().filter(function (n) { return before.indexOf(n) === -1; });
+    if (fresh.length) setTimeout(function () { showToast(fresh); }, 1300);
+  }
+  $("toast").addEventListener("click", function () { $("toast").hidden = true; });
+
+  function renderAchievements() {
+    var c = achContext();
+    var body = $("achBody");
+    body.innerHTML = "";
+    var count = 0;
+    ACHIEVEMENTS.forEach(function (a) {
+      var cur = a.get(c);
+      var done = cur >= a.goal;
+      if (done) count++;
+
+      var tr = document.createElement("tr");
+      tr.className = "ach-row " + (done ? "done" : "locked");
+
+      var th = document.createElement("th");
+      th.scope = "row";
+      var cell = document.createElement("div");
+      cell.className = "ach-cell";
+      var badge = document.createElement("span");
+      badge.className = "ach-badge";
+      badge.setAttribute("aria-hidden", "true");
+      badge.textContent = done ? "\u2605" : "\uD83D\uDD12";
+      var box = document.createElement("span");
+      box.className = "ach-text";
+      var nm = document.createElement("b");
+      nm.textContent = a.name;
+      var ds = document.createElement("span");
+      ds.textContent = a.desc;
+      box.appendChild(nm);
+      box.appendChild(ds);
+      cell.appendChild(badge);
+      cell.appendChild(box);
+      th.appendChild(cell);
+
+      var td = document.createElement("td");
+      td.className = "ach-prog";
+      if (done) {
+        td.textContent = "Unlocked";
+      } else {
+        td.textContent = Math.min(cur, a.goal) + " / " + a.goal;
+        var bar = document.createElement("div");
+        bar.className = "mini-bar";
+        var fill = document.createElement("span");
+        fill.style.width = Math.round(Math.min(cur, a.goal) / a.goal * 100) + "%";
+        bar.appendChild(fill);
+        td.appendChild(bar);
+      }
+      tr.appendChild(th);
+      tr.appendChild(td);
+      body.appendChild(tr);
+    });
+    $("achSum").textContent = count + " of " + ACHIEVEMENTS.length + " unlocked";
+    $("achFill").style.width = Math.round(count / ACHIEVEMENTS.length * 100) + "%";
+  }
+  $("trophyBtn").addEventListener("click", function () {
+    setMenu(false); setAcc(false); setTip(false);
+    renderAchievements();
+    var d = $("trophyDialog");
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  });
+  function closeTrophy() {
+    var d = $("trophyDialog");
+    if (d.close) d.close(); else d.removeAttribute("open");
+  }
+  $("trophyClose").addEventListener("click", closeTrophy);
+  $("trophyDialog").addEventListener("click", function (e) { if (e.target === $("trophyDialog")) closeTrophy(); });
+
+  /* ---------- contact ---------- */
+  function openContact() {
+    setMenu(false); setAcc(false); setTip(false);
+    var email = CONTACT_EMAIL.trim();
+    var ok = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(email);
+    $("contactOff").hidden = ok;
+    $("contactActions").hidden = !ok;
+    $("contactMail").hidden = !ok;
+    $("contactIntro").hidden = !ok;
+    $("contactWho").hidden = !(ok && CONTACT_NAME.trim());
+    $("contactWho").textContent = CONTACT_NAME.trim();
+    $("contactMsg").textContent = "";
+    if (ok) {
+      $("contactMail").textContent = email;
+      $("contactGmail").href = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(email) + "&su=" + encodeURIComponent("Sonicdle");
+    }
+    var d = $("contactDialog");
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  }
+  function closeContact() {
+    var d = $("contactDialog");
+    if (d.close) d.close(); else d.removeAttribute("open");
+  }
+  $("helpBtn").addEventListener("click", openContact);
+  $("contactClose").addEventListener("click", closeContact);
+  $("contactDialog").addEventListener("click", function (e) { if (e.target === $("contactDialog")) closeContact(); });
+  $("contactCopy").addEventListener("click", function () {
+    var email = CONTACT_EMAIL.trim();
+    var done = function () { $("contactMsg").textContent = "Address copied!"; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(done, function () { window.prompt("Copy the address:", email); });
+    } else {
+      window.prompt("Copy the address:", email);
+    }
+  });
+
   updateAccountUI();
+  updateEmerald();
+  if (session) markAccount();
   if (session) {
     syncNow().then(function (changed) { if (changed) location.reload(); });
   }
