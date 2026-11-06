@@ -495,6 +495,14 @@
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, -14px); } to { opacity: 1; transform: translate(-50%, 0); } }
   @media (max-width: 520px) { .ach-prog { width: 92px; } }
 
+  /* ----- language selector ----- */
+  .opt select {
+    flex: none; max-width: 150px; font: inherit; font-weight: 800;
+    color: var(--night); background: var(--paper);
+    border: 3px solid var(--paper); border-radius: 12px; padding: 5px 8px; cursor: pointer;
+  }
+  .opt select:focus-visible { outline: 4px solid var(--ring); outline-offset: 2px; }
+
   /* ----- dark theme ----- */
   html[data-theme="dark"] {
     color-scheme: dark;
@@ -575,6 +583,7 @@
         <div class="stat"><b id="stStreak">0</b><span>Day streak</span></div>
       </div>
       <p class="acc-status" id="accStatus" aria-live="polite"></p>
+      <button class="reset" id="syncBtn" type="button">Sync now</button>
       <button class="reset" id="logoutBtn" type="button">Log out</button>
     </div>
   </div>
@@ -632,6 +641,16 @@
     <div class="opt">
       <span id="lblMotion">Animations</span>
       <button class="switch" id="optMotion" type="button" role="switch" aria-checked="true" aria-labelledby="lblMotion"><span class="knob"></span></button>
+    </div>
+    <div class="opt">
+      <label id="lblLang" for="optLang">Language</label>
+      <select id="optLang" data-notr aria-labelledby="lblLang">
+        <option value="en" lang="en">English</option>
+        <option value="pl" lang="pl">Polski</option>
+        <option value="es" lang="es">Español</option>
+        <option value="de" lang="de">Deutsch</option>
+        <option value="fr" lang="fr">Français</option>
+      </select>
     </div>
     <div class="acc-box" id="accOut">
       <div class="acc-title">Account</div>
@@ -711,7 +730,7 @@
         </g>
         <!-- banner -->
         <polygon points="123,140 773,140 747,180 97,180" fill="#08133f" stroke="#ffc52e" stroke-width="4" stroke-linejoin="round"/>
-        <text x="435" y="169" text-anchor="middle" textLength="560" lengthAdjust="spacing"
+        <text x="435" y="169" text-anchor="middle"
               font-family="Nunito, 'Segoe UI', Arial, sans-serif" font-weight="800" font-style="italic"
               font-size="26" fill="#ffffff">THE HEDGEHOG GUESSING GAME</text>
       </svg></a>
@@ -934,8 +953,8 @@
      project go into config.js. NEVER paste the "service_role" key.
      Leave them empty to switch accounts off.
      ============================================================ */
-  var SUPABASE_URL = String(CONFIG.supabaseUrl || "https://psrnblgyiomghnjdbnhr.supabase.co");
-  var SUPABASE_ANON_KEY = String(CONFIG.supabaseAnonKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcm5ibGd5aW9tZ2huamRibmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4NjY0NDEsImV4cCI6MjEwOTQ0MjQ0MX0.hIgrhEkfhUok82NovgZgPcUpLBnnbYihdkYa1w5ejpE");
+  var SUPABASE_URL = String(CONFIG.supabaseUrl || "");
+  var SUPABASE_ANON_KEY = String(CONFIG.supabaseAnonKey || "");
   // forgive common copy/paste slips: spaces, a missing https://, a trailing "/" or a path like /rest/v1
   (function () {
     var u = SUPABASE_URL.trim();
@@ -1703,9 +1722,9 @@
       setTimeout(function () { btn.textContent = "Copy result"; }, 1800);
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done, function () { window.prompt("Copy your result:", text); });
+      navigator.clipboard.writeText(text).then(done, function () { window.prompt(T("Copy your result:"), text); });
     } else {
-      window.prompt("Copy your result:", text);
+      window.prompt(T("Copy your result:"), text);
     }
   });
 
@@ -1715,11 +1734,12 @@
   var SETTINGS_KEY = "sonicdle:settings";
   var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   var prefersCalm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var settings = { dark: prefersDark, motion: !prefersCalm };
+  var settings = { dark: prefersDark, motion: !prefersCalm, at: 0 };
   (function () {
     var saved = store.get(SETTINGS_KEY);
     if (saved && typeof saved.dark === "boolean") settings.dark = saved.dark;
     if (saved && typeof saved.motion === "boolean") settings.motion = saved.motion;
+    if (saved && typeof saved.at === "number") settings.at = saved.at;
   })();
 
   function applySettings() {
@@ -1743,13 +1763,13 @@
     else if (e.key === "Escape" && $("emerald").classList.contains("open")) { setTip(false); $("emBtn").focus(); }
   });
   $("optDark").addEventListener("click", function () {
-    settings.dark = !settings.dark; store.set(SETTINGS_KEY, settings); applySettings();
+    settings.dark = !settings.dark; settings.at = Date.now(); store.set(SETTINGS_KEY, settings); applySettings(); scheduleSync();
   });
   $("optMotion").addEventListener("click", function () {
-    settings.motion = !settings.motion; store.set(SETTINGS_KEY, settings); applySettings();
+    settings.motion = !settings.motion; settings.at = Date.now(); store.set(SETTINGS_KEY, settings); applySettings(); scheduleSync();
   });
   $("resetBtn").addEventListener("click", function () {
-    if (window.confirm("Reset today's saved progress in all games?")) {
+    if (window.confirm(T("Reset today's saved progress in all games?"))) {
       Object.keys(KEYS).forEach(function (k) { try { localStorage.removeItem(KEYS[k]); } catch (e) {} });
       if (session) pushRemote().then(function () { location.reload(); }, function () { location.reload(); });
       else location.reload();
@@ -1959,7 +1979,11 @@
       var v = store.get(KEYS[k]);
       if (validProgress(v)) progress[k] = v;
     });
-    return { progress: progress, stats: loadStats() };
+    return {
+      progress: progress,
+      stats: loadStats(),
+      settings: { dark: settings.dark, motion: settings.motion, at: settings.at || 0 }
+    };
   }
   function mergeRemote(remote) {
     remote = remote || {};
@@ -1987,6 +2011,16 @@
       rand: Math.max(ls.rand, num(rs.rand)),
       acct: ls.acct || !!rs.acct
     });
+    // the most recently changed display settings win
+    var rset = remote.settings;
+    if (rset && typeof rset.at === "number" && rset.at > (settings.at || 0) &&
+        typeof rset.dark === "boolean" && typeof rset.motion === "boolean") {
+      settings.dark = rset.dark;
+      settings.motion = rset.motion;
+      settings.at = rset.at;
+      store.set(SETTINGS_KEY, settings);
+      applySettings();
+    }
   }
 
   function setStatus(t) { $("accStatus").textContent = t; }
@@ -2003,13 +2037,14 @@
   function syncNow() {
     if (!session) return Promise.resolve(false);
     setStatus("Syncing…");
+    lastSync = Date.now();
     return ensureToken().then(function (tok) {
       return api("/rest/v1/progress?select=data&limit=1", { token: tok }).then(function (rows) {
         var before = JSON.stringify(localPayload());
         mergeRemote(rows && rows[0] ? rows[0].data : null);
         var changed = before !== JSON.stringify(localPayload());
         return pushRemote().then(function () {
-          setStatus("Saved to your account.");
+          setStatus("Saved to your account \u00B7 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
           updateAccountUI();
           return changed;
         });
@@ -2019,6 +2054,7 @@
       return false;
     });
   }
+  var lastSync = 0;
   var syncTimer = null;
   function scheduleSync() {
     if (!session) return;
@@ -2051,6 +2087,15 @@
     setTip(false);
     updateAccountUI();
     setAcc($("accountMenu").hidden);
+  });
+  $("syncBtn").addEventListener("click", function () {
+    syncNow().then(function (changed) { if (changed) location.reload(); });
+  });
+  // coming back to the tab (or switching from another device): fetch the newest progress
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && session && Date.now() - lastSync > 60000) {
+      syncNow().then(function (changed) { if (changed) location.reload(); });
+    }
   });
   $("logoutBtn").addEventListener("click", function () {
     var tok = session && session.access_token;
@@ -2293,9 +2338,9 @@
     var email = CONTACT_EMAIL.trim();
     var done = function () { $("contactMsg").textContent = "Address copied!"; };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(email).then(done, function () { window.prompt("Copy the address:", email); });
+      navigator.clipboard.writeText(email).then(done, function () { window.prompt(T("Copy the address:"), email); });
     } else {
-      window.prompt("Copy the address:", email);
+      window.prompt(T("Copy the address:"), email);
     }
   });
 
@@ -2305,6 +2350,309 @@
   if (session) {
     syncNow().then(function (changed) { if (changed) location.reload(); });
   }
+
+  /* ---------- languages ----------
+     English is the base language. Every English text of the page is looked up in DICT
+     (order of translations: Polish, Spanish, German, French). A text that is not in the
+     list simply stays in English, so new texts never break anything.
+     To add a translation for a text you changed, add a line like:
+       D("Your English text", "Polski", "Español", "Deutsch", "Français");           */
+  var LANGS = ["en", "pl", "es", "de", "fr"];
+  var lang = "en";
+  var DICT = {};
+  var RULES = [];
+  function D(en, pl, es, de, fr) { DICT[en] = [pl, es, de, fr]; }
+  // pattern with $1, $2 ... ; "x" lists the captured groups that are translated through DICT
+  function RX(re, pl, es, de, fr, x) { RULES.push({ re: re, t: [pl, es, de, fr], x: x || [] }); }
+
+  /* page and menu */
+  D("Sonicdle – guess the Sonic the Hedgehog character", "Sonicdle – zgadnij postać z Sonic the Hedgehog", "Sonicdle – adivina el personaje de Sonic the Hedgehog", "Sonicdle – errate die Figur aus Sonic the Hedgehog", "Sonicdle – devine le personnage de Sonic the Hedgehog");
+  D("THE HEDGEHOG GUESSING GAME", "ZGADYWANKA ZE ŚWIATA SONICA", "EL JUEGO DE ADIVINAR DE SONIC", "DAS SONIC-RATESPIEL", "LE JEU DE DEVINETTES SONIC");
+  D("Guess the daily characters from the world of Sonic the Hedgehog. Pick a game below.", "Zgadnij dzienne postacie ze świata Sonic the Hedgehog. Wybierz grę poniżej.", "Adivina los personajes diarios del mundo de Sonic the Hedgehog. Elige un juego abajo.", "Errate die täglichen Figuren aus der Welt von Sonic the Hedgehog. Wähle unten ein Spiel.", "Devine les personnages du jour de l’univers de Sonic the Hedgehog. Choisis un jeu ci-dessous.");
+  D("Next characters in", "Nowe postacie za", "Nuevos personajes en", "Neue Figuren in", "Nouveaux personnages dans");
+  D("Classic", "Klasyczny", "Clásico", "Klassisch", "Classique");
+  D("Silhouette", "Sylwetka", "Silueta", "Silhouette", "Silhouette");
+  D("Quote", "Cytat", "Cita", "Zitat", "Citation");
+  D("Compare species, color, type and debut year.", "Porównuj gatunek, kolor, typ i rok debiutu.", "Compara especie, color, tipo y año de debut.", "Vergleiche Art, Farbe, Typ und Debütjahr.", "Compare l’espèce, la couleur, le type et l’année de début.");
+  D("Name the character from a tiny close-up.", "Rozpoznaj postać po maleńkim zbliżeniu.", "Reconoce al personaje por un primer plano diminuto.", "Erkenne die Figur an einem winzigen Ausschnitt.", "Reconnais le personnage grâce à un minuscule gros plan.");
+  D("Name the character from its shadow.", "Rozpoznaj postać po jej cieniu.", "Reconoce al personaje por su sombra.", "Erkenne die Figur an ihrem Schatten.", "Reconnais le personnage grâce à son ombre.");
+  D("Guess who said the line, from games or comics.", "Zgadnij, kto wypowiedział tę kwestię, z gier lub komiksów.", "Adivina quién dijo la frase, de los juegos o cómics.", "Errate, wer die Zeile gesagt hat – aus Spielen oder Comics.", "Devine qui a dit la réplique, tirée des jeux ou des comics.");
+  D("Play", "Graj", "Jugar", "Spielen", "Jouer");
+  D("Gave up", "Poddano się", "Te rendiste", "Aufgegeben", "Abandonné");
+  D("← Menu", "← Menu", "← Menú", "← Menü", "← Menu");
+  D("Game type", "Rodzaj gry", "Tipo de juego", "Spielart", "Type de jeu");
+  D("Game mode", "Tryb gry", "Modo de juego", "Spielmodus", "Mode de jeu");
+  D("Wrong guesses", "Błędne odpowiedzi", "Intentos fallidos", "Falsche Versuche", "Essais ratés");
+  D("Close", "Zamknij", "Cerrar", "Schließen", "Fermer");
+  D("My account", "Moje konto", "Mi cuenta", "Mein Konto", "Mon compte");
+  D("Settings", "Ustawienia", "Ajustes", "Einstellungen", "Paramètres");
+  D("Contact", "Kontakt", "Contacto", "Kontakt", "Contact");
+  D("Achievements", "Osiągnięcia", "Logros", "Erfolge", "Succès");
+  D("Daily character", "Postać dnia", "Personaje del día", "Figur des Tages", "Personnage du jour");
+  D("Random character", "Losowa postać", "Personaje aleatorio", "Zufällige Figur", "Personnage aléatoire");
+  D("Attempts:", "Próby:", "Intentos:", "Versuche:", "Essais :");
+  D("Type a character name", "Wpisz imię postaci", "Escribe el nombre de un personaje", "Gib den Namen einer Figur ein", "Saisis le nom d’un personnage");
+  D("e.g. Sonic, Rouge, Metal Sonic", "np. Sonic, Rouge, Metal Sonic", "p. ej. Sonic, Rouge, Metal Sonic", "z. B. Sonic, Rouge, Metal Sonic", "p. ex. Sonic, Rouge, Metal Sonic");
+  D("matches", "zgadza się", "coincide", "stimmt überein", "correspond");
+  D("does not match", "nie zgadza się", "no coincide", "stimmt nicht überein", "ne correspond pas");
+  D("the hidden character debuted later", "szukana postać zadebiutowała później", "el personaje oculto debutó más tarde", "die gesuchte Figur ist später erschienen", "le personnage caché a débuté plus tard");
+  D("the hidden character debuted earlier", "szukana postać zadebiutowała wcześniej", "el personaje oculto debutó antes", "die gesuchte Figur ist früher erschienen", "le personnage caché a débuté plus tôt");
+  D("↑ the hidden character debuted later", "↑ szukana postać zadebiutowała później", "↑ el personaje oculto debutó más tarde", "↑ die gesuchte Figur ist später erschienen", "↑ le personnage caché a débuté plus tard");
+  D("↓ the hidden character debuted earlier", "↓ szukana postać zadebiutowała wcześniej", "↓ el personaje oculto debutó antes", "↓ die gesuchte Figur ist früher erschienen", "↓ le personnage caché a débuté plus tôt");
+  D("Character", "Postać", "Personaje", "Figur", "Personnage");
+  D("Species", "Gatunek", "Especie", "Art", "Espèce");
+  D("Gender", "Płeć", "Género", "Geschlecht", "Genre");
+  D("Color", "Kolor", "Color", "Farbe", "Couleur");
+  D("Type", "Typ", "Tipo", "Typ", "Type");
+  D("Alignment", "Postawa", "Bando", "Gesinnung", "Camp");
+  D("Debut", "Debiut", "Debut", "Debüt", "Début");
+  D("Start with any character. Suggestions appear as you type.", "Zacznij od dowolnej postaci. Podpowiedzi pojawią się podczas pisania.", "Empieza con cualquier personaje. Las sugerencias aparecen mientras escribes.", "Beginne mit einer beliebigen Figur. Vorschläge erscheinen beim Tippen.", "Commence par n’importe quel personnage. Des suggestions apparaissent pendant la saisie.");
+  D("This is a tiny part of a character. Each wrong guess zooms out a little.", "To maleńki fragment postaci. Każda błędna odpowiedź trochę oddala obraz.", "Esto es una pequeña parte de un personaje. Cada intento fallido aleja un poco la imagen.", "Das ist ein winziger Ausschnitt einer Figur. Jeder falsche Versuch zoomt ein Stück heraus.", "Voici un minuscule morceau d’un personnage. Chaque mauvais essai dézoome un peu.");
+  D("Zoomed-in part of a mystery Sonic character", "Przybliżony fragment tajemniczej postaci z Sonica", "Parte ampliada de un personaje misterioso de Sonic", "Vergrößerter Ausschnitt einer geheimnisvollen Sonic-Figur", "Partie agrandie d’un personnage mystère de Sonic");
+  D("Dark silhouette of a mystery Sonic character", "Ciemna sylwetka tajemniczej postaci z Sonica", "Silueta oscura de un personaje misterioso de Sonic", "Dunkle Silhouette einer geheimnisvollen Sonic-Figur", "Silhouette sombre d’un personnage mystère de Sonic");
+  D("Who is hiding in the shadows? Wrong guesses unlock hints.", "Kto się kryje w cieniu? Błędne odpowiedzi odblokowują podpowiedzi.", "¿Quién se esconde en las sombras? Los intentos fallidos desbloquean pistas.", "Wer versteckt sich im Schatten? Falsche Versuche schalten Hinweise frei.", "Qui se cache dans l’ombre ? Les mauvais essais débloquent des indices.");
+  D("Who said it? Wrong guesses unlock hints.", "Kto to powiedział? Błędne odpowiedzi odblokowują podpowiedzi.", "¿Quién lo dijo? Los intentos fallidos desbloquean pistas.", "Wer hat das gesagt? Falsche Versuche schalten Hinweise frei.", "Qui a dit ça ? Les mauvais essais débloquent des indices.");
+  D("Loading character pictures…", "Wczytywanie obrazków postaci…", "Cargando imágenes de personajes…", "Lade Figurenbilder…", "Chargement des images des personnages…");
+  D("Copy result", "Skopiuj wynik", "Copiar resultado", "Ergebnis kopieren", "Copier le résultat");
+  D("Play a random character", "Zagraj losową postacią", "Jugar con un personaje aleatorio", "Mit zufälliger Figur spielen", "Jouer avec un personnage aléatoire");
+  D("Back to menu", "Wróć do menu", "Volver al menú", "Zurück zum Menü", "Retour au menu");
+  D("I give up", "Poddaję się", "Me rindo", "Ich gebe auf", "J’abandonne");
+  D("Copied!", "Skopiowano!", "¡Copiado!", "Kopiert!", "Copié !");
+  D("A new daily character arrives tomorrow. Play a random one until then.", "Jutro pojawi się nowa postać dnia. Do tego czasu zagraj losową.", "Mañana llega un nuevo personaje del día. Mientras tanto, juega con uno aleatorio.", "Morgen gibt es eine neue Figur des Tages. Spiel bis dahin eine zufällige.", "Un nouveau personnage du jour arrive demain. En attendant, joue avec un personnage aléatoire.");
+  D("Try again with a new character.", "Spróbuj jeszcze raz z nową postacią.", "Inténtalo de nuevo con un personaje nuevo.", "Versuch es noch einmal mit einer neuen Figur.", "Réessaie avec un nouveau personnage.");
+  D("Fan-made game, not affiliated with SEGA. Sonic the Hedgehog and its characters are the property of SEGA.", "Gra stworzona przez fanów, niezwiązana z SEGA. Sonic the Hedgehog i jego postacie są własnością SEGA.", "Juego hecho por fans, sin relación con SEGA. Sonic the Hedgehog y sus personajes son propiedad de SEGA.", "Fan-Spiel ohne Verbindung zu SEGA. Sonic the Hedgehog und seine Figuren sind Eigentum von SEGA.", "Jeu créé par des fans, non affilié à SEGA. Sonic the Hedgehog et ses personnages sont la propriété de SEGA.");
+
+  /* settings, account, dialogs */
+  D("Dark mode", "Tryb ciemny", "Modo oscuro", "Dunkelmodus", "Mode sombre");
+  D("Animations", "Animacje", "Animaciones", "Animationen", "Animations");
+  D("Language", "Język", "Idioma", "Sprache", "Langue");
+  D("Account", "Konto", "Cuenta", "Konto", "Compte");
+  D("Save your progress and keep it on every device.", "Zapisuj postępy i miej je na każdym urządzeniu.", "Guarda tu progreso y tenlo en todos tus dispositivos.", "Speichere deinen Fortschritt und nutze ihn auf jedem Gerät.", "Enregistre ta progression et retrouve-la sur tous tes appareils.");
+  D("Create account", "Utwórz konto", "Crear cuenta", "Konto erstellen", "Créer un compte");
+  D("Log in", "Zaloguj się", "Iniciar sesión", "Anmelden", "Se connecter");
+  D("Signed in as", "Zalogowano jako", "Sesión iniciada como", "Angemeldet als", "Connecté en tant que");
+  D("Reset saved progress", "Zresetuj zapisany postęp", "Restablecer el progreso guardado", "Gespeicherten Fortschritt zurücksetzen", "Réinitialiser la progression enregistrée");
+  D("Reset today's saved progress in all games?", "Zresetować dzisiejszy zapisany postęp we wszystkich grach?", "¿Restablecer el progreso guardado de hoy en todos los juegos?", "Den heute gespeicherten Fortschritt in allen Spielen zurücksetzen?", "Réinitialiser la progression enregistrée aujourd’hui dans tous les jeux ?");
+  D("Copy your result:", "Skopiuj swój wynik:", "Copia tu resultado:", "Kopiere dein Ergebnis:", "Copie ton résultat :");
+  D("Copy the address:", "Skopiuj adres:", "Copia la dirección:", "Kopiere die Adresse:", "Copie l’adresse :");
+  D("Played", "Rozegrane", "Jugadas", "Gespielt", "Jouées");
+  D("Wins", "Wygrane", "Victorias", "Siege", "Victoires");
+  D("Day streak", "Seria dni", "Racha de días", "Tage in Folge", "Jours d’affilée");
+  D("Sync now", "Synchronizuj teraz", "Sincronizar ahora", "Jetzt synchronisieren", "Synchroniser maintenant");
+  D("Log out", "Wyloguj się", "Cerrar sesión", "Abmelden", "Se déconnecter");
+  D("Syncing…", "Synchronizacja…", "Sincronizando…", "Synchronisiere…", "Synchronisation…");
+  D("Inactive Chaos Emerald", "Nieaktywny Szmaragd Chaosu", "Esmeralda del Caos inactiva", "Inaktiver Chaos-Smaragd", "Émeraude du Chaos inactive");
+  D("Win all 4 daily games in one day to start a streak and light it up.", "Wygraj wszystkie 4 gry dzienne jednego dnia, aby rozpocząć serię i go rozświetlić.", "Gana los 4 juegos diarios en un día para empezar una racha e iluminarla.", "Gewinne alle 4 Tagesspiele an einem Tag, um eine Serie zu starten und ihn zum Leuchten zu bringen.", "Gagne les 4 jeux du jour en une journée pour lancer une série et l’allumer.");
+  D("You have reached the last emerald. Keep going!", "Masz już ostatni szmaragd. Tak trzymaj!", "Has llegado a la última esmeralda. ¡Sigue así!", "Du hast den letzten Smaragd erreicht. Weiter so!", "Tu as atteint la dernière émeraude. Continue comme ça !");
+  D("Display name", "Nazwa wyświetlana", "Nombre visible", "Anzeigename", "Nom affiché");
+  D("Email", "E-mail", "Correo electrónico", "E-Mail", "E-mail");
+  D("Password", "Hasło", "Contraseña", "Passwort", "Mot de passe");
+  D("Create a new account", "Załóż nowe konto", "Crear una cuenta nueva", "Neues Konto erstellen", "Créer un nouveau compte");
+  D("I already have an account", "Mam już konto", "Ya tengo una cuenta", "Ich habe bereits ein Konto", "J’ai déjà un compte");
+  D("Accounts are not available on this site yet. Your progress is still saved in this browser.", "Konta nie są jeszcze dostępne na tej stronie. Twój postęp nadal zapisuje się w tej przeglądarce.", "Las cuentas aún no están disponibles en este sitio. Tu progreso se sigue guardando en este navegador.", "Konten sind auf dieser Seite noch nicht verfügbar. Dein Fortschritt wird weiterhin in diesem Browser gespeichert.", "Les comptes ne sont pas encore disponibles sur ce site. Ta progression reste enregistrée dans ce navigateur.");
+  D("Please wait…", "Proszę czekać…", "Espera un momento…", "Bitte warten…", "Un instant…");
+  D("Pick a display name between 2 and 20 characters.", "Wybierz nazwę od 2 do 20 znaków.", "Elige un nombre de entre 2 y 20 caracteres.", "Wähle einen Anzeigenamen mit 2 bis 20 Zeichen.", "Choisis un nom affiché de 2 à 20 caractères.");
+  D("Use a password with at least 6 characters.", "Użyj hasła o długości co najmniej 6 znaków.", "Usa una contraseña de al menos 6 caracteres.", "Verwende ein Passwort mit mindestens 6 Zeichen.", "Utilise un mot de passe d’au moins 6 caractères.");
+  D("Account created! Check your email, click the confirmation link, then log in.", "Konto utworzone! Sprawdź pocztę, kliknij link potwierdzający, a potem zaloguj się.", "¡Cuenta creada! Revisa tu correo, haz clic en el enlace de confirmación y luego inicia sesión.", "Konto erstellt! Prüfe dein Postfach, klicke auf den Bestätigungslink und melde dich dann an.", "Compte créé ! Vérifie ta boîte mail, clique sur le lien de confirmation, puis connecte-toi.");
+  D("Network error. Check your connection and try again.", "Błąd sieci. Sprawdź połączenie i spróbuj ponownie.", "Error de red. Comprueba tu conexión e inténtalo de nuevo.", "Netzwerkfehler. Prüfe deine Verbindung und versuche es erneut.", "Erreur réseau. Vérifie ta connexion et réessaie.");
+  D("Not signed in.", "Nie zalogowano.", "No has iniciado sesión.", "Nicht angemeldet.", "Non connecté.");
+  D("Found a bug, have an idea, or want to suggest a quote? Write to me!", "Błąd, pomysł albo propozycja cytatu? Napisz do mnie!", "¿Un error, una idea o una propuesta de cita? ¡Escríbeme!", "Ein Fehler, eine Idee oder ein Zitatvorschlag? Schreib mir!", "Un bug, une idée ou une proposition de citation ? Écris-moi !");
+  D("Contact details have not been added yet.", "Dane kontaktowe nie zostały jeszcze dodane.", "Aún no se han añadido los datos de contacto.", "Kontaktdaten wurden noch nicht hinzugefügt.", "Les coordonnées n’ont pas encore été ajoutées.");
+  D("Open in Gmail", "Otwórz w Gmailu", "Abrir en Gmail", "In Gmail öffnen", "Ouvrir dans Gmail");
+  D("Copy address", "Skopiuj adres", "Copiar dirección", "Adresse kopieren", "Copier l’adresse");
+  D("Address copied!", "Skopiowano adres!", "¡Dirección copiada!", "Adresse kopiert!", "Adresse copiée !");
+  D("Achievement", "Osiągnięcie", "Logro", "Erfolg", "Succès");
+  D("Progress", "Postęp", "Progreso", "Fortschritt", "Progression");
+  D("Unlocked", "Odblokowano", "Desbloqueado", "Freigeschaltet", "Débloqué");
+  D("Achievement unlocked!", "Odblokowano osiągnięcie!", "¡Logro desbloqueado!", "Erfolg freigeschaltet!", "Succès débloqué !");
+  D("Achievements unlocked!", "Odblokowano osiągnięcia!", "¡Logros desbloqueados!", "Erfolge freigeschaltet!", "Succès débloqués !");
+  D("From a game", "Z gry", "De un juego", "Aus einem Spiel", "D’un jeu");
+  D("From Archie comics", "Z komiksów Archie", "De los cómics de Archie", "Aus den Archie-Comics", "Des comics Archie");
+  D("From IDW comics", "Z komiksów IDW", "De los cómics de IDW", "Aus den IDW-Comics", "Des comics IDW");
+  D("From the series", "Z serii", "De la serie", "Aus der Serie", "De la série");
+
+  /* achievements */
+  D("Ring Collector", "Zbieracz Pierścieni", "Coleccionista de Anillos", "Ringsammler", "Collectionneur d’Anneaux");
+  D("Faster Than Sound", "Szybszy niż dźwięk", "Más rápido que el sonido", "Schneller als der Schall", "Plus vite que le son");
+  D("Never Give Up", "Nigdy się nie poddawaj", "Nunca te rindas", "Gib niemals auf", "N’abandonne jamais");
+  D("Full Combo", "Pełne combo", "Combo completo", "Volles Combo", "Combo complet");
+  D("Emerald Hunter", "Łowca Szmaragdów", "Cazador de Esmeraldas", "Smaragdjäger", "Chasseur d’Émeraudes");
+  D("Chaotix Detective", "Detektyw Chaotix", "Detective Chaotix", "Chaotix-Detektiv", "Détective Chaotix");
+  D("Eagle Eye", "Orle Oko", "Ojo de Águila", "Adlerauge", "Œil d’aigle");
+  D("Shadow Hunter", "Łowca Cieni", "Cazador de Sombras", "Schattenjäger", "Chasseur d’Ombres");
+  D("Voice Actor", "Aktor głosowy", "Actor de voz", "Synchronsprecher", "Doubleur");
+  D("Free Run", "Wolny bieg", "Carrera libre", "Freier Lauf", "Course libre");
+  D("Hundred Rings", "Sto Pierścieni", "Cien Anillos", "Hundert Ringe", "Cent Anneaux");
+  D("Welcome to the Team", "Witaj w drużynie", "Bienvenido al equipo", "Willkommen im Team", "Bienvenue dans l’équipe");
+  D("Win your first daily game.", "Wygraj swoją pierwszą grę dzienną.", "Gana tu primer juego diario.", "Gewinne dein erstes Tagesspiel.", "Gagne ton premier jeu du jour.");
+  D("Win a daily game in 3 guesses or fewer.", "Wygraj grę dzienną w 3 próbach lub mniej.", "Gana un juego diario en 3 intentos o menos.", "Gewinne ein Tagesspiel mit 3 Versuchen oder weniger.", "Gagne un jeu du jour en 3 essais ou moins.");
+  D("Win a daily game on your very first guess.", "Wygraj grę dzienną za pierwszym strzałem.", "Gana un juego diario al primer intento.", "Gewinne ein Tagesspiel gleich beim ersten Versuch.", "Gagne un jeu du jour dès le premier essai.");
+  D("Win a daily game that took 10 or more guesses.", "Wygraj grę dzienną, która zajęła 10 prób lub więcej.", "Gana un juego diario que te llevó 10 intentos o más.", "Gewinne ein Tagesspiel, für das du 10 oder mehr Versuche gebraucht hast.", "Gagne un jeu du jour qui a demandé 10 essais ou plus.");
+  D("Win all four daily games in one day.", "Wygraj wszystkie cztery gry dzienne jednego dnia.", "Gana los cuatro juegos diarios en un mismo día.", "Gewinne alle vier Tagesspiele an einem Tag.", "Gagne les quatre jeux du jour en une seule journée.");
+  D("Reach a 3-day streak.", "Osiągnij serię 3 dni.", "Consigue una racha de 3 días.", "Erreiche eine Serie von 3 Tagen.", "Atteins une série de 3 jours.");
+  D("Reach a 7-day streak.", "Osiągnij serię 7 dni.", "Consigue una racha de 7 días.", "Erreiche eine Serie von 7 Tagen.", "Atteins une série de 7 jours.");
+  D("Reach a 35-day streak and watch your emerald change color.", "Osiągnij serię 35 dni i zobacz, jak Twój szmaragd zmienia kolor.", "Consigue una racha de 35 días y mira cómo cambia el color de tu esmeralda.", "Erreiche eine Serie von 35 Tagen und sieh zu, wie dein Smaragd die Farbe wechselt.", "Atteins une série de 35 jours et regarde ton émeraude changer de couleur.");
+  D("Reach the white Chaos Emerald (a 211-day streak).", "Zdobądź biały Szmaragd Chaosu (seria 211 dni).", "Consigue la Esmeralda del Caos blanca (una racha de 211 días).", "Erreiche den weißen Chaos-Smaragd (eine Serie von 211 Tagen).", "Obtiens l’Émeraude du Chaos blanche (une série de 211 jours).");
+  D("Win 10 daily Classic games.", "Wygraj 10 gier dziennych w trybie Klasycznym.", "Gana 10 juegos diarios en modo Clásico.", "Gewinne 10 Tagesspiele im Modus Klassisch.", "Gagne 10 jeux du jour en mode Classique.");
+  D("Win 10 daily Zoom games.", "Wygraj 10 gier dziennych w trybie Zoom.", "Gana 10 juegos diarios en modo Zoom.", "Gewinne 10 Tagesspiele im Modus Zoom.", "Gagne 10 jeux du jour en mode Zoom.");
+  D("Win 10 daily Silhouette games.", "Wygraj 10 gier dziennych w trybie Sylwetka.", "Gana 10 juegos diarios en modo Silueta.", "Gewinne 10 Tagesspiele im Modus Silhouette.", "Gagne 10 jeux du jour en mode Silhouette.");
+  D("Win 10 daily Quote games.", "Wygraj 10 gier dziennych w trybie Cytat.", "Gana 10 juegos diarios en modo Cita.", "Gewinne 10 Tagesspiele im Modus Zitat.", "Gagne 10 jeux du jour en mode Citation.");
+  D("Win 10 rounds in Random character mode.", "Wygraj 10 rund w trybie losowej postaci.", "Gana 10 rondas en el modo de personaje aleatorio.", "Gewinne 10 Runden im Modus Zufällige Figur.", "Gagne 10 manches en mode Personnage aléatoire.");
+  D("Win 100 daily games.", "Wygraj 100 gier dziennych.", "Gana 100 juegos diarios.", "Gewinne 100 Tagesspiele.", "Gagne 100 jeux du jour.");
+  D("Create an account.", "Załóż konto.", "Crea una cuenta.", "Erstelle ein Konto.", "Crée un compte.");
+
+  /* character traits */
+  D("Hedgehog", "Jeż", "Erizo", "Igel", "Hérisson");
+  D("Fox", "Lis", "Zorro", "Fuchs", "Renard");
+  D("Echidna", "Kolczatka", "Equidna", "Ameisenigel", "Échidné");
+  D("Human", "Człowiek", "Humano", "Mensch", "Humain");
+  D("Bat", "Nietoperz", "Murciélago", "Fledermaus", "Chauve-souris");
+  D("Cat", "Kot", "Gato", "Katze", "Chat");
+  D("Rabbit", "Królik", "Conejo", "Kaninchen", "Lapin");
+  D("Chameleon", "Kameleon", "Camaleón", "Chamäleon", "Caméléon");
+  D("Crocodile", "Krokodyl", "Cocodrilo", "Krokodil", "Crocodile");
+  D("Bee", "Pszczoła", "Abeja", "Biene", "Abeille");
+  D("Robot", "Robot", "Robot", "Roboter", "Robot");
+  D("Armadillo", "Pancernik", "Armadillo", "Gürteltier", "Tatou");
+  D("Flying squirrel", "Wiewiórka latająca", "Ardilla voladora", "Gleithörnchen", "Écureuil volant");
+  D("Albatross", "Albatros", "Albatros", "Albatros", "Albatros");
+  D("Jackal", "Szakal", "Chacal", "Schakal", "Chacal");
+  D("Badger", "Borsuk", "Tejón", "Dachs", "Blaireau");
+  D("Hawk", "Jastrząb", "Halcón", "Falke", "Faucon");
+  D("Swallow", "Jaskółka", "Golondrina", "Schwalbe", "Hirondelle");
+  D("Weasel", "Łasica", "Comadreja", "Wiesel", "Belette");
+  D("Male", "Mężczyzna", "Masculino", "Männlich", "Masculin");
+  D("Female", "Kobieta", "Femenino", "Weiblich", "Féminin");
+  D("None", "Brak", "Ninguno", "Keines", "Aucun");
+  D("Blue", "Niebieski", "Azul", "Blau", "Bleu");
+  D("Orange", "Pomarańczowy", "Naranja", "Orange", "Orange");
+  D("Red", "Czerwony", "Rojo", "Rot", "Rouge");
+  D("Pink", "Różowy", "Rosa", "Rosa", "Rose");
+  D("Black", "Czarny", "Negro", "Schwarz", "Noir");
+  D("White", "Biały", "Blanco", "Weiß", "Blanc");
+  D("Silver", "Srebrny", "Plateado", "Silber", "Argenté");
+  D("Purple", "Fioletowy", "Morado", "Lila", "Violet");
+  D("Beige", "Beżowy", "Beige", "Beige", "Beige");
+  D("Yellow", "Żółty", "Amarillo", "Gelb", "Jaune");
+  D("Green", "Zielony", "Verde", "Grün", "Vert");
+  D("Gray", "Szary", "Gris", "Grau", "Gris");
+  D("Brown", "Brązowy", "Marrón", "Braun", "Marron");
+  D("Cyan", "Błękitny", "Cian", "Cyan", "Cyan");
+  D("Speed", "Szybkość", "Velocidad", "Tempo", "Vitesse");
+  D("Flight", "Latanie", "Vuelo", "Flug", "Vol");
+  D("Power", "Siła", "Fuerza", "Kraft", "Force");
+  D("Tech", "Technika", "Técnica", "Technik", "Technique");
+  D("Magic", "Magia", "Magia", "Magie", "Magie");
+  D("Hero", "Bohater", "Héroe", "Held", "Héros");
+  D("Neutral", "Neutralny", "Neutral", "Neutral", "Neutre");
+  D("Villain", "Złoczyńca", "Villano", "Schurke", "Méchant");
+
+  /* texts with variable parts (order matters) */
+  RX(/^Well done! It's (.+)!$/, "Brawo! To $1!", "¡Bien hecho! ¡Es $1!", "Gut gemacht! Es ist $1!", "Bien joué ! C’est $1 !");
+  RX(/^You got it in (\d+) attempts?\.$/, "Udało się! Liczba prób: $1.", "¡Lo lograste! Intentos: $1.", "Geschafft! Versuche: $1.", "Réussi ! Essais : $1.");
+  RX(/^The character was: (.+)$/, "To była postać: $1", "El personaje era: $1", "Die Figur war: $1", "Le personnage était : $1");
+  RX(/^Solved in (\d+)$/, "Rozwiązano w próbie $1", "Resuelto en el intento $1", "Gelöst im Versuch $1", "Résolu à l’essai $1");
+  RX(/^In progress · (\d+)$/, "W trakcie · $1", "En curso · $1", "Läuft · $1", "En cours · $1");
+  RX(/^Streak: (\d+) days?$/, "Seria dni: $1", "Racha de días: $1", "Tage in Folge: $1", "Jours d’affilée : $1");
+  RX(/^Today: all (\d+) daily games won!$/, "Dzisiaj: wszystkie gry dzienne wygrane!", "Hoy: ¡todos los juegos diarios ganados!", "Heute: alle Tagesspiele gewonnen!", "Aujourd’hui : tous les jeux du jour gagnés !");
+  RX(/^Today: (\d+) of (\d+) daily games won\.$/, "Dzisiaj: wygrane gry dzienne: $1 z $2.", "Hoy: $1 de $2 juegos diarios ganados.", "Heute: $1 von $2 Tagesspielen gewonnen.", "Aujourd’hui : $1 jeux du jour sur $2 gagnés.");
+  RX(/^(.+) Chaos Emerald \((\d+) of 7\)$/, "Szmaragd Chaosu $2/7 – $1", "Esmeralda del Caos $2/7 – $1", "Chaos-Smaragd $2/7 – $1", "Émeraude du Chaos $2/7 – $1", [1]);
+  RX(/^Next emerald after (\d+) more days?\.$/, "Dni do następnego szmaragdu: $1", "Días hasta la siguiente esmeralda: $1", "Tage bis zum nächsten Smaragd: $1", "Jours avant la prochaine émeraude : $1");
+  RX(/^Next hint after (\d+) more wrong guess(?:es)?\.$/, "Błędnych prób do kolejnej podpowiedzi: $1", "Intentos fallidos hasta la siguiente pista: $1", "Fehlversuche bis zum nächsten Hinweis: $1", "Essais ratés avant le prochain indice : $1");
+  RX(/^(Species|Gender|Color|Type|Alignment|Debut): (.+), (matches|does not match|the hidden character debuted later|the hidden character debuted earlier)$/, "$1: $2, $3", "$1: $2, $3", "$1: $2, $3", "$1 : $2, $3", [1, 2, 3]);
+  RX(/^Species: (.+)$/, "Gatunek: $1", "Especie: $1", "Art: $1", "Espèce : $1", [1]);
+  RX(/^Type: (.+)$/, "Typ: $1", "Tipo: $1", "Typ: $1", "Type : $1", [1]);
+  RX(/^Debut: (\d+)$/, "Debiut: $1", "Debut: $1", "Debüt: $1", "Début : $1");
+  RX(/^Source: (.+)$/, "Źródło: $1", "Fuente: $1", "Quelle: $1", "Source : $1");
+  RX(/^Picture of (.+)$/, "Obrazek postaci: $1", "Imagen de $1", "Bild von $1", "Image de $1");
+  RX(/^Saved to your account · (.+)$/, "Zapisano na koncie · $1", "Guardado en tu cuenta · $1", "In deinem Konto gespeichert · $1", "Enregistré sur ton compte · $1");
+  RX(/^Could not sync: (.+)$/, "Nie udało się zsynchronizować: $1", "No se pudo sincronizar: $1", "Synchronisierung fehlgeschlagen: $1", "Synchronisation impossible : $1");
+  RX(/^(\d+) of (\d+) unlocked$/, "Odblokowano $1 z $2", "$1 de $2 desbloqueados", "$1 von $2 freigeschaltet", "$1 sur $2 débloqués");
+
+  function lookup(core) {
+    return Object.prototype.hasOwnProperty.call(DICT, core) ? DICT[core][LANGS.indexOf(lang) - 1] : null;
+  }
+  // translate one English text into the current language (whitespace around it is kept)
+  function tr(s) {
+    if (lang === "en" || typeof s !== "string") return s;
+    var m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s);
+    var core = m[2];
+    if (!core) return s;
+    var hit = lookup(core);
+    if (hit) return m[1] + hit + m[3];
+    var i = LANGS.indexOf(lang) - 1;
+    for (var r = 0; r < RULES.length; r++) {
+      var mm = RULES[r].re.exec(core);
+      if (!mm) continue;
+      var out = RULES[r].t[i].replace(/\$(\d)/g, function (_, k) {
+        var v = mm[+k];
+        if (RULES[r].x.indexOf(+k) !== -1) { var h = lookup(v); if (h) return h; }
+        return v;
+      });
+      return m[1] + out + m[3];
+    }
+    return s;
+  }
+  function T(s) { return tr(s); }
+
+  // texts that must never be translated: names, quotes, the language list
+  var NO_TR = "script, style, [data-notr], .cell.name, #sugg, .chip, blockquote, figcaption";
+  var textRec = new WeakMap(), attrRec = new WeakMap();
+  var TR_ATTRS = ["aria-label", "placeholder", "alt", "title"];
+
+  function xText(node) {
+    var v = node.nodeValue;
+    var rec = textRec.get(node);
+    var src = (rec && v === rec.out) ? rec.src : v;      // our own output, or fresh English text
+    var el = node.parentElement;
+    var out = (!el || el.closest(NO_TR)) ? src : tr(src);
+    if (out !== v) node.nodeValue = out;
+    textRec.set(node, { src: src, out: out });
+  }
+  function xAttr(el, name) {
+    var v = el.getAttribute(name);
+    if (v === null) return;
+    var all = attrRec.get(el) || {};
+    var rec = all[name];
+    var src = (rec && v === rec.out) ? rec.src : v;
+    var out = el.closest(NO_TR) ? src : tr(src);
+    if (out !== v) el.setAttribute(name, out);
+    all[name] = { src: src, out: out };
+    attrRec.set(el, all);
+  }
+  function walk(node) {
+    if (node.nodeType === 3) { xText(node); return; }
+    if (node.nodeType !== 1 || /^(SCRIPT|STYLE)$/.test(node.nodeName)) return;
+    TR_ATTRS.forEach(function (a) { if (node.hasAttribute(a)) xAttr(node, a); });
+    for (var c = node.firstChild; c; c = c.nextSibling) walk(c);
+  }
+  var TITLE_EN = "Sonicdle – guess the Sonic the Hedgehog character";
+  function setLang(l) {
+    if (LANGS.indexOf(l) === -1) l = "en";
+    lang = l;
+    document.documentElement.setAttribute("lang", l);
+    $("optLang").value = l;
+    document.title = tr(TITLE_EN);
+    walk(document.body);
+  }
+  function startI18n() {
+    var saved = store.get("sonicdle:lang");
+    var guess = String(navigator.language || "en").slice(0, 2).toLowerCase();
+    var first = LANGS.indexOf(saved) !== -1 ? saved : (LANGS.indexOf(guess) !== -1 ? guess : "en");
+    new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        if (m.type === "characterData") xText(m.target);
+        else if (m.type === "attributes") xAttr(m.target, m.attributeName);
+        else for (var k = 0; k < m.addedNodes.length; k++) walk(m.addedNodes[k]);
+      });
+    }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: TR_ATTRS });
+    $("optLang").addEventListener("change", function () {
+      store.set("sonicdle:lang", this.value);
+      setLang(this.value);
+    });
+    setLang(first);
+  }
+  startI18n();
 
   /* ---------- home menu and routing ---------- */
   function statusFor(key) {
