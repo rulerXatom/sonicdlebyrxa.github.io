@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sonicdle – guess the Sonic the Hedgehog character</title>
+<link rel="shortcut icon" type="image/png" href="favicon.png">
 <meta name="description" content="Sonicdle: daily guessing games about characters from the world of Sonic the Hedgehog. Play Classic or Zoom.">
 <script>
   (function () {
@@ -1019,14 +1020,27 @@
      src  = title of the game or comic, shown as a hint and after the round
      ============================================================ */
   var QUOTES = [
-    { who: "Sonic",  text: "Way past cool!",                       kind: "Game", src: "Sonic Adventure" },
-    { who: "Sonic",  text: "What you see is what you get!",        kind: "Game", src: "Sonic Adventure 2" },
+    { who: "Sonic",  text: "A hedgehog's gotta do what a hedgehog's gotta do.",                       kind: "Game", src: "Sonic Colors" },
+    { who: "Sonic",  text: "I play by my own rules. Remember that.",        kind: "Game", src: "Sonic and the Black Knight" },
     { who: "Sonic",  text: "Way to go, Knucklehead!",              kind: "Game", src: "Sonic Adventure" },
     { who: "Sonic",  text: "I'm counting on ya, Tails.",           kind: "Game", src: "Sonic Adventure 2" },
+	{ who: "Sonic",  text: "Then there's no time like the present. Let's do it to it.",           kind: "Game", src: "Sonic Dream Team" },
+	{ who: "Sonic",  text: "Nothing starts until you take action. If you have time to worry, then run!",           kind: "Game", src: "Sonic The Hedgehog (06)" },
     { who: "Shadow", text: "I am the ultimate life form.",         kind: "Game", src: "Sonic Adventure 2" },
     { who: "Shadow", text: "What are you, anyway?",                kind: "Game", src: "Sonic Adventure 2" },
+	{ who: "Shadow", text: "Death to ALL who oppose me!",         kind: "Game", src: "Shadow The Hedgehog (05)" },
+	{ who: "Shadow", text: "Before this is over... I'll show you the true power of CHAOS CONTROL!",         kind: "Game", src: "Sonic Adventure 2" },
+	{ who: "Shadow", text: "If the world chooses to become my enemy, I will fight like I always have!",         kind: "Game", src: "Sonic The Hedgehog (06)" },
+	{ who: "Shadow", text: "Maria wanted me to protect everyone from harm. Unfortunately, that includes you. That is your only saving grace.",         kind: "Game", src: "Sonic Racing: CrossWorlds" },
     { who: "Dr. Eggman", text: "He always seems to get in my way. But he can't spoil my master plan.", kind: "Game", src: "Sonic Adventure" },
-    { who: "Big",    text: "Froggy!",                              kind: "Game", src: "Sonic Adventure" }
+	{ who: "Dr. Eggman", text: "Now is the time to end this long drawn-out battle, and mark myself a place in history as the ultimate genius!", kind: "Game", src: "Sonic Adventure 2" },
+	{ who: "Dr. Eggman", text: "MUSTACHE MORON???!!! I'M THE WORLD'S GREATEST-", kind: "Game", src: "Sonic Heroes" },
+	{ who: "Dr. Eggman", text: "The world? I'm going to OWN the world when I'm finished with Sonic!", kind: "Game", src: "Sonic Generations" },
+	{ who: "Dr. Eggman", text: "What?! I'm not giving up, yet!", kind: "Game", src: "Sonic Generations (3DS)" },
+	{ who: "Dr. Eggman", text: "You're history!", kind: "Game", src: "Sonic Dash" },
+    { who: "Big",    text: "Froggy!",                              kind: "Game", src: "Sonic Adventure" },
+	{ who: "Big",    text: "It's not nice to make fun of my friends.",                              kind: "Game", src: "Sonic Heroes" },
+	{ who: "Big",    text: "Is your name Froggy? No, your name is Sonic. So-nic!",                              kind: "Game", src: "Sonic Chronicles: The Dark Brotherhood" },
   ];
   var KIND_LABEL = { Game: "From a game", Archie: "From Archie comics", IDW: "From IDW comics" };
 
